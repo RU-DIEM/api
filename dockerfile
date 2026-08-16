@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY .python-version ./
 
-RUN --mount=type=cache,target=/root/.cache/uv uv python install
+RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv uv python install
 
 COPY pyproject.toml uv.lock ./
 
@@ -20,13 +20,13 @@ COPY pyproject.toml uv.lock ./
 
 FROM base AS deps-dev
 
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --all-groups
+RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv uv sync --frozen --all-groups
 
 ########################################################################################
 
 FROM base AS deps-prod
 
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
+RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv uv sync --frozen --no-dev
 
 ########################################################################################
 
