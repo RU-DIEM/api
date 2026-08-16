@@ -5,7 +5,7 @@ from dmr import ResponseSpec, validate
 from health_check import Cache, Database, Storage
 from health_check.base import HealthCheckResult
 
-from api_core.controllers.mixins import PublicEndpointMixin, StrictThrottlingMixin
+from api_core.controllers.mixins import PublicControllerMixin, StrictThrottlingMixin
 from api_core.schemas.health import HealthCheckError, HealthCheckSuccess
 
 from .base import BaseController
@@ -15,7 +15,7 @@ from .serializers import CustomPydanticFastSerializer
 
 
 class HealthCheckController(
-    PublicEndpointMixin,
+    PublicControllerMixin,
     StrictThrottlingMixin,
     BaseController[CustomPydanticFastSerializer],
 ):

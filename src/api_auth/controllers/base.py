@@ -5,13 +5,13 @@ from dmr.serializer import BaseSerializer
 
 from api_auth.services.csrf import ensure_csrf
 from api_core.controllers.base import BaseController
-from api_core.controllers.mixins import PublicEndpointMixin, StrictThrottlingMixin
+from api_core.controllers.mixins import PublicControllerMixin, StrictThrottlingMixin
 
 ########################################################################################
 
 
 class AuthController[Serializer: BaseSerializer](
-    PublicEndpointMixin,
+    PublicControllerMixin,
     StrictThrottlingMixin,
     BaseController[Serializer],
 ):

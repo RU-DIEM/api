@@ -6,7 +6,7 @@ from dmr import modify
 from api_utils.env import OPENAPI
 
 from .base import BaseController
-from .mixins import PublicEndpointMixin
+from .mixins import PublicControllerMixin
 from .serializers import CustomPydanticFastSerializer
 
 ########################################################################################
@@ -25,7 +25,7 @@ def build_root_response() -> dict[str, str]:
 
 
 class RootController(
-    PublicEndpointMixin,
+    PublicControllerMixin,
     BaseController[CustomPydanticFastSerializer],
 ):
     @modify(status_code=HTTPStatus.OK)

@@ -53,7 +53,7 @@ class HandleNotAllowedMixin(HandleNotAllowedProvider):
 ########################################################################################
 
 
-class PublicEndpointMixin:
+class PublicControllerMixin:
     auth: ClassVar[Sequence[AsyncAuth] | None] = None
 
 

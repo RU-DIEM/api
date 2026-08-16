@@ -37,6 +37,7 @@ class BaseController[Serializer: BaseSerializer](
             security_scheme_name="jwtHeader",
         ),
     )
+
     endpoint_cls: ClassVar[type[Endpoint]] = PathOperationIdEndpoint
 
     error_model: ClassVar[type[ApiErrorResponse]] = ApiErrorResponse
