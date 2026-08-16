@@ -15,7 +15,7 @@ from django.db.models import (
 from django.db.models.fields.related import ManyToManyField
 from django.db.models.functions import Lower, Now, Upper
 from django.utils.timezone import now
-from pgtrigger import Insert, Protect, ReadOnly
+from pgtrigger import Insert, Protect, ReadOnly, SoftDelete
 
 from api_core.models.base import ApiModel
 from api_utils.db import ImmutableUnaccent, track_table
@@ -99,6 +99,7 @@ class ApiUser(ApiModel, AbstractBaseUser, PermissionsMixin):
         ordering: Sequence[str] = ("username",)
         triggers: Sequence[Trigger] = (
             *ApiModel.Meta.triggers,
-            ReadOnly(fields=["created_at"], name="trg_apiuser_readonly_createdat"),
             Protect(name="trg_apiuser_protect_insert", operation=Insert),
+            ReadOnly(fields=["created_at"], name="trg_apiuser_readonly_createdat"),
+            SoftDelete(field="is_active", name="trg_apiuser_softdelete_isactive"),
         )
