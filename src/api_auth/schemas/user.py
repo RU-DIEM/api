@@ -41,14 +41,14 @@ class ApiUserInlineGet(BaseGet):
 
 
 class ApiUserGroupsGet(BaseGet):
-    groups: tuple[GroupInlineGet, ...]
+    groups: list[GroupInlineGet]
 
 
 ########################################################################################
 
 
 class ApiUserPermissionsGet(BaseGet):
-    permissions: tuple[PermissionGet, ...]
+    permissions: list[PermissionGet]
 
 
 ########################################################################################
@@ -93,14 +93,14 @@ class ApiUserWrite(ApiUserBaseWrite):
 
 
 class ApiUserGroupsWrite(DTO):
-    groups: tuple[PositiveInt, ...] | None = None
+    groups: list[PositiveInt] | None = None
 
 
 ########################################################################################
 
 
 class ApiUserPermissionsWrite(DTO):
-    permissions: tuple[PositiveInt, ...] | None = None
+    permissions: list[PositiveInt] | None = None
 
 
 ########################################################################################

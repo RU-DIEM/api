@@ -24,7 +24,7 @@ class GroupInlineGet(BaseGet[PositiveInt]):
 
 
 class GroupGet(GroupInlineGet):
-    permissions: tuple[PermissionGet, ...]
+    permissions: list[PermissionGet]
 
 
 ########################################################################################
@@ -32,7 +32,7 @@ class GroupGet(GroupInlineGet):
 
 class GroupPost(DTO):
     name: Annotated[str, StringConstraints(max_length=150, min_length=1)]
-    permissions: tuple[PositiveInt, ...] | None = None
+    permissions: list[PositiveInt] | None = None
 
 
 ########################################################################################
