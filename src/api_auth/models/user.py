@@ -38,7 +38,7 @@ class ApiUser(ApiModel, AbstractBaseUser, PermissionsMixin):
     first_name = CharField(db_default="", default="", max_length=100)
     last_name = CharField(db_default="", default="", max_length=100)
     email = EmailField(db_default="", default="")
-    username = CharField(max_length=100, unique=True)
+    username = CharField(max_length=100)
     password = CharField(max_length=128)
 
     created_at = DateTimeField(db_default=Now(), default=now)
@@ -71,8 +71,13 @@ class ApiUser(ApiModel, AbstractBaseUser, PermissionsMixin):
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 Lower("email"),
-                condition=Q(email__len__gt=0),
+                condition=Q(email__len__gt=0, is_active=True),
                 name="unq_apiuser_email",
+            ),
+            UniqueConstraint(
+                Lower("username"),
+                condition=Q(is_active=True),
+                name="unq_apiuser_username",
             ),
         )
 

@@ -132,6 +132,11 @@ AUTH_PASSWORD_VALIDATORS: Final[Sequence[dict[str, str]]] = (
 )
 
 SILENCED_SYSTEM_CHECKS: Final[Sequence[str]] = (
+    # - ignore USERNAME_FIELD declared without unique=True
+    #   - ok because a partial UniqueConstraint
+    #     is defined, and the custom auth backend
+    #     handles inactive usernames
+    "auth.W004",
     # - ignore 30-character limit for constraints/indices
     #   - ok because postgres' limit is 63
     "models.E034",
