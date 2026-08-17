@@ -1,7 +1,8 @@
 preview = true
 
 [lint]
-  select = ["ALL"]
+  extend-safe-fixes = ["TC"]
+  select            = ["ALL"]
 
   ignore = [
     "blank-line-after-function",
