@@ -7,7 +7,7 @@ from dmr.serializer import BaseSerializer
 
 from api_auth.services.permissions import T_ADD_PERM, T_DELETE_PERM, T_VIEW_PERM
 from api_core.schemas.base import DTO
-from api_core.schemas.path import RelatedInstancePath, UuidToUuidRelatedPath
+from api_core.schemas.path import RelatedInstancePath
 from api_core.services.operations import (
     FlatLinkAttachOperation,
     FlatLinkDetachOperation,
@@ -28,7 +28,7 @@ class ModelLinkController[
     Serializer: BaseSerializer,
     Model: DatabaseModel,
     Get: DTO,
-    PathSchema: RelatedInstancePath = UuidToUuidRelatedPath,
+    PathSchema: RelatedInstancePath,
 ](ModelController[Serializer, Model, Get]):
     attach_operation: ClassVar[type[LinkAttachOperation]] = FlatLinkAttachOperation
     detach_operation: ClassVar[type[LinkDetachOperation]] = FlatLinkDetachOperation

@@ -31,6 +31,7 @@ from api_core.controllers.models.link import ModelLinkController
 from api_core.controllers.models.relation import ModelRelationController
 from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.schemas.pagination import Paginated
+from api_core.schemas.path import UuidToIntRelatedPath
 from api_core.services.operations import CreateOperation
 
 from .mixins import (
@@ -82,6 +83,7 @@ class ApiUserGroupsLinkController(
         CustomPydanticFastSerializer,
         ApiUserGroups,
         ApiUserGroupsLinkGet,
+        UuidToIntRelatedPath,
     ],
 ):
     parent: ClassVar[str] = "api_user"
@@ -114,6 +116,7 @@ class ApiUserPermissionsLinkController(
         CustomPydanticFastSerializer,
         ApiUserPermissions,
         ApiUserPermissionsLinkGet,
+        UuidToIntRelatedPath,
     ],
 ):
     parent: ClassVar[str] = "api_user"
