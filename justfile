@@ -240,11 +240,11 @@ mk-migrations *args="": services
     @just fmt
 
 [group("django")]
-run $DEBUG="True" *args="": services
+run $DEBUG="True" *args="": services validate
     @just run-frozen granian api_core.asgi:application --reload {{ args }}
 
 [group("django")]
-serve $DEBUG="False" *args="": services
+serve $DEBUG="False" *args="": services validate
     @just run-frozen granian api_core.asgi:application {{ args }}
 
 [group("django")]
