@@ -24,7 +24,7 @@ class GroupInlineGet(BaseGet[PositiveInt]):
 
 
 class GroupGet(GroupInlineGet):
-    permissions: list[PermissionGet]
+    permissions: tuple[PermissionGet, ...]
 
 
 ########################################################################################

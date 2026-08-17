@@ -344,8 +344,12 @@ request url method data token:
       prettier --ignore-path "" --write {{ request_json }} > /dev/null 2>&1
     fi
 
-    if command -v code > /dev/null 2>&1; then
+    if command -v zeditor > /dev/null 2>&1; then
+      zeditor {{ request_json }} > /dev/null 2>&1
+      exit 0
+    elif command -v code > /dev/null 2>&1; then
       code -r {{ request_json }} > /dev/null 2>&1
+      exit 0
     fi
 
 ########################################################################################

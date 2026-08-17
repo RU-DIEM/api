@@ -6,11 +6,12 @@ if TYPE_CHECKING:
     from django.db.models.manager import Manager
     from django.db.models.options import Options
     from django.db.models.query import QuerySet
-    from ty_extensions import Intersection
 
     from api_auth.models import ApiUser
     from api_core.models.base import ApiModel
     from api_core.schemas.get import PrimaryKey
+
+    from ty_extensions import Intersection
 
 ########################################################################################
 

@@ -12,9 +12,10 @@ if TYPE_CHECKING:
     from django.db.models.manager import Manager
     from django.db.models.options import Options
     from django.db.models.query import QuerySet
-    from ty_extensions import Intersection
 
     from .event import ApiEvent
+
+    from ty_extensions import Intersection
 
 ########################################################################################
 

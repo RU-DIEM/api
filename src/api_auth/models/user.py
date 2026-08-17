@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
     from django.db.models.query import QuerySet
     from pgtrigger import Trigger
+
     from ty_extensions import Intersection
 
 ########################################################################################

@@ -41,14 +41,14 @@ class ApiUserInlineGet(BaseGet):
 
 
 class ApiUserGroupsGet(BaseGet):
-    groups: list[GroupInlineGet]
+    groups: tuple[GroupInlineGet, ...]
 
 
 ########################################################################################
 
 
 class ApiUserPermissionsGet(BaseGet):
-    permissions: list[PermissionGet]
+    permissions: tuple[PermissionGet, ...]
 
 
 ########################################################################################
