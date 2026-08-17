@@ -9,7 +9,7 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.views.decorators.debug import sensitive_variables
 
 if TYPE_CHECKING:
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet
 
     from api_auth.models import ApiUser
     from api_utils.types import ParsedHttpRequest

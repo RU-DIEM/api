@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from functools import cached_property
 from typing import ClassVar, Final, override
 
-from django.db.models.query import QuerySet
+from django.db.models import QuerySet
 from dmr.endpoint import Endpoint
 from dmr.serializer import BaseSerializer
 

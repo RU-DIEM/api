@@ -1,8 +1,8 @@
 from collections.abc import Iterable
 from typing import ClassVar
 
-from django.db.models.query import QuerySet
-from django_filters.filterset import FilterSet
+from django.db.models import QuerySet
+from django_filters import FilterSet
 from dmr import Body
 from dmr.serializer import BaseSerializer
 

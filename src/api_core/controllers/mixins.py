@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from http import HTTPStatus
 from typing import TYPE_CHECKING, ClassVar, override
 
-from django.db.models.query import QuerySet
+from django.db.models import QuerySet
 from django.http import HttpResponse
 from dmr import Controller
 from dmr.negotiation import request_renderer

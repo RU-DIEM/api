@@ -9,9 +9,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import ClassVar
 
-    from django.db.models.manager import Manager
+    from django.db.models import Manager, QuerySet
     from django.db.models.options import Options
-    from django.db.models.query import QuerySet
 
     from .event import ApiEvent
 

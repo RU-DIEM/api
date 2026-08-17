@@ -3,9 +3,8 @@ from typing import TYPE_CHECKING, ClassVar, Protocol, TypeVar
 from django.http import HttpRequest
 
 if TYPE_CHECKING:
-    from django.db.models.manager import Manager
+    from django.db.models import Manager, QuerySet
     from django.db.models.options import Options
-    from django.db.models.query import QuerySet
 
     from api_auth.models import ApiUser
     from api_core.models.base import ApiModel

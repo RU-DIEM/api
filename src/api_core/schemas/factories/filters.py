@@ -6,7 +6,7 @@ from functools import cache
 from typing import get_args
 from uuid import UUID
 
-from django_filters.filters import (
+from django_filters import (
     AllValuesFilter,
     AllValuesMultipleFilter,
     BaseCSVFilter,
@@ -20,6 +20,7 @@ from django_filters.filters import (
     DateTimeFilter,
     DateTimeFromToRangeFilter,
     DurationFilter,
+    FilterSet,
     IsoDateTimeFilter,
     IsoDateTimeFromToRangeFilter,
     LookupChoiceFilter,
@@ -34,7 +35,6 @@ from django_filters.filters import (
     TypedMultipleChoiceFilter as EnumlessMultipleChoiceFilter,
     UUIDFilter,
 )
-from django_filters.filterset import FilterSet
 from pydantic import create_model, model_validator
 
 from api_core.filters import (

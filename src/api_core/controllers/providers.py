@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from django.db.models.query import QuerySet
+from django.db.models import QuerySet
 from django.http import HttpResponse
 
 ########################################################################################

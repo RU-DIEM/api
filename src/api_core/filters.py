@@ -1,15 +1,13 @@
 from typing import TYPE_CHECKING, override
 
 from django.db.models import Q
-from django_filters import NumberFilter, RangeFilter
+from django_filters import CharFilter, ChoiceFilter, NumberFilter, RangeFilter
 from django_filters.constants import EMPTY_VALUES
-from django_filters.filters import CharFilter, ChoiceFilter
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from django.db.models import TextChoices
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet, TextChoices
 
 ########################################################################################
 

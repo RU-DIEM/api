@@ -2,7 +2,7 @@ from http import HTTPStatus
 from re import search, sub
 from typing import TYPE_CHECKING, Final
 
-from django.db.models.deletion import ProtectedError, RestrictedError
+from django.db.models import ProtectedError, RestrictedError
 from psycopg.errors import (
     ForeignKeyViolation,
     IntegrityError as PsqlIntegrityError,

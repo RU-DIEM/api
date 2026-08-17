@@ -6,8 +6,8 @@ from api_exceptions.enums import BadRequestErrorTypes, RequestScopes
 from api_exceptions.errors import BadRequestError
 
 if TYPE_CHECKING:
-    from django.db.models.query import QuerySet
-    from django_filters.filterset import FilterSet
+    from django.db.models import QuerySet
+    from django_filters import FilterSet
 
 
 ########################################################################################

@@ -20,8 +20,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from uuid import UUID
 
+    from django.db.models import QuerySet
     from django.db.models.fields.related_descriptors import ManyToManyDescriptor
-    from django.db.models.query import QuerySet
 
     from api_core.controllers.models.base import ModelController
     from api_core.schemas.get import DTO

@@ -10,7 +10,7 @@ from api_exceptions.errors import ConflictError, NotFoundError
 from .base import ModelOperation
 
 if TYPE_CHECKING:
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet
 
     from api_core.schemas.base import DTO
     from api_core.schemas.path import RelatedInstancePath

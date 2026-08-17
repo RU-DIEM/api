@@ -4,8 +4,7 @@ from types import UnionType
 from typing import TYPE_CHECKING, get_args, get_origin, override
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models.fields import NOT_PROVIDED
-from django.db.models.query import Prefetch
+from django.db.models import NOT_PROVIDED, Prefetch
 
 from api_core.controllers.providers import QuerySetProvider
 from api_core.schemas.base import DTO
@@ -15,13 +14,13 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Final
 
-    from django.db.models.fields.related import ManyToManyField
-    from django.db.models.fields.reverse_related import (
+    from django.db.models import (
         ForeignObjectRel,
+        ManyToManyField,
         ManyToOneRel,
         OneToOneRel,
+        QuerySet,
     )
-    from django.db.models.query import QuerySet
 
     from api_utils.types import DatabaseModel
 

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
     from typing import ClassVar
 
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet
 
     from api_core.controllers.models.base import ModelController
     from api_core.schemas.base import DTO

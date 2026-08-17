@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
-from django_filters.filters import OrderingFilter
-from django_filters.filterset import FilterSet
+from django_filters import FilterSet, OrderingFilter
 
 from api_auth.enums import ApiUserTypes
 from api_auth.models import ApiUser
@@ -15,7 +14,7 @@ from api_core.filters import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from django.db.models.base import Model
+    from django.db.models import Model
 
 ########################################################################################
 

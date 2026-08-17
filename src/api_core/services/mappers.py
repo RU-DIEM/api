@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from typing import Final
 
     from django.core.paginator import AsyncPage
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet
 
     from api_core.schemas.base import DTO
     from api_core.schemas.pagination import PageQuery

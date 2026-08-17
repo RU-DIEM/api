@@ -9,7 +9,7 @@ from .jwt import find_jwt_subject, jwt_revocation_expiry, jwt_revocation_key
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet
     from dmr.security.jwt.token import JWToken
 
     from api_auth.models import ApiUser

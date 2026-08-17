@@ -25,8 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Final
 
-    from django.db.models.fields.reverse_related import ManyToOneRel, OneToOneRel
-    from django.db.models.query import QuerySet
+    from django.db.models import ManyToOneRel, OneToOneRel, QuerySet
 
     from api_core.controllers.models.base import ModelController
     from api_core.schemas.base import DTO

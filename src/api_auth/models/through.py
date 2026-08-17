@@ -1,9 +1,7 @@
 from typing import TYPE_CHECKING
 
 from django.contrib.auth.models import Group, Permission
-from django.db.models import UniqueConstraint
-from django.db.models.deletion import CASCADE, DB_CASCADE
-from django.db.models.fields.related import ForeignKey
+from django.db.models import CASCADE, DB_CASCADE, ForeignKey, UniqueConstraint
 
 from api_core.models.base import ApiModel
 from api_utils.db import track_table

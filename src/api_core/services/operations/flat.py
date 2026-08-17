@@ -11,7 +11,7 @@ from .base import (
 )
 
 if TYPE_CHECKING:
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet
 
     from api_core.schemas.base import DTO
     from api_utils.types import DatabaseModel

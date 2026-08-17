@@ -9,10 +9,10 @@ from django.db.models import (
     DateTimeField,
     EmailField,
     Index,
+    ManyToManyField,
     Q,
     UniqueConstraint,
 )
-from django.db.models.fields.related import ManyToManyField
 from django.db.models.functions import Lower, Now, Upper
 from django.utils.timezone import now
 from pgtrigger import Insert, Protect, ReadOnly, SoftDelete
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Final
 
-    from django.db.models.query import QuerySet
+    from django.db.models import QuerySet
     from pgtrigger import Trigger
 
     from ty_extensions import Intersection

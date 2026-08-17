@@ -2,9 +2,8 @@ from functools import cache
 from typing import TYPE_CHECKING, Final, Literal
 
 from django.contrib.postgres.indexes import GinIndex, OpClass
-from django.db.models import Index, Q
+from django.db.models import Index, Q, Transform
 from django.db.models.fields.json import KeyTextTransform, KeyTransform
-from django.db.models.lookups import Transform
 from django.db.transaction import get_connection
 from pghistory import track
 
