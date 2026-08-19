@@ -1,16 +1,81 @@
 [project]
-  copyright = "&copy 2026, Joaquín Zúñiga"
+  extra_css = [
+    "stylesheets/footer.css",
+    "stylesheets/sidebar.css",
+    "stylesheets/theme.css",
+    "stylesheets/topbar.css",
+    "stylesheets/width.css",
+  ]
 
-  edit_uri  = "edit/main/docs/"
-  repo_name = "jp-zuniga/backend-factory"
-  repo_url  = "https://github.com/jp-zuniga/backend-factory"
+  extra_javascript = [
+    "scripts/elk.mjs",
+    "scripts/sidebar.js",
+  ]
 
   site_author      = "Joaquín Zúñiga"
-  site_description = "backend factory!"
-  site_name        = "backend-factory"
+  site_description = "Documentación de microservicios para el sistema RUDI."
+  site_name        = "rudi-api"
+  site_url         = "https://ru-diem.github.io/api/"
 
   nav = [
-    { "Home" = "index.md" },
+    { "Inicio" = "index.md" },
+    {
+      "Requerimientos" = [
+        "requerimientos/index.md",
+        "requerimientos/reglas-negocio.md",
+        {
+          "Funcionales" = [
+            "requerimientos/funcionales/administracion.md",
+            "requerimientos/funcionales/participantes.md",
+          ],
+        },
+      ],
+    },
+    {
+      "Actores del sistema" = [
+        "actores/index.md",
+        "actores/administracion.md",
+        "actores/participantes.md",
+      ],
+    },
+    {
+      "Casos de uso" = [
+        "casos-uso/index.md",
+        "casos-uso/administracion.md",
+        "casos-uso/participantes.md",
+      ],
+    },
+    {
+      "Modelo de dominio" = [
+        "modelo-dominio/index.md",
+        "modelo-dominio/alcance.md",
+        "modelo-dominio/decisiones.md",
+        "modelo-dominio/convenciones.md",
+        {
+          "Módulos" = [
+            "modelo-dominio/modulos/estados.md",
+            "modelo-dominio/modulos/catalogos.md",
+            "modelo-dominio/modulos/taxonomias.md",
+            "modelo-dominio/modulos/identidad.md",
+            "modelo-dominio/modulos/perfiles.md",
+            "modelo-dominio/modulos/actividades.md",
+            "modelo-dominio/modulos/participacion.md",
+            "modelo-dominio/modulos/puntos.md",
+            "modelo-dominio/modulos/constancias.md",
+            "modelo-dominio/modulos/portafolio.md",
+            "modelo-dominio/modulos/analitica.md",
+            "modelo-dominio/modulos/auditoria.md",
+          ],
+        },
+        {
+          "Notas" = [
+            "modelo-dominio/procesos.md",
+            "modelo-dominio/extensiones.md",
+            "modelo-dominio/riesgos.md",
+          ],
+        },
+      ],
+    },
   ]
 
   [project.markdown_extensions]
@@ -27,14 +92,15 @@
     }
 
     [project.markdown_extensions.pymdownx]
+      caret     = {}
+      details   = {}
+      emoji     = {}
+      highlight = {}
+      keys      = {}
+      mark      = {}
+      tilde     = {}
+
       blocks.caption = {}
-      caret          = {}
-      details        = {}
-      emoji          = {}
-      highlight      = {}
-      keys           = {}
-      mark           = {}
-      tilde          = {}
 
       tasklist.custom_checkbox = true
 
@@ -59,6 +125,16 @@
           object    = "pymdownx.slugs.slugify",
         }
 
+    [project.markdown_extensions.zensical.extensions]
+      preview.configurations = [
+        {
+          targets = {
+            exclude = ["**/actores/*.md"],
+            include = ["**/*.md"],
+          },
+        },
+      ]
+
   [project.theme]
     features = [
       "content.code.copy",
@@ -69,30 +145,40 @@
       "navigation.instant.prefetch",
       "navigation.instant.progress",
       "navigation.path",
+      "navigation.pruning",
+      "navigation.sections",
+      "navigation.tabs",
+      "navigation.tabs.sticky",
+      "navigation.top",
     ]
 
-    favicon = "logo.svg"
-    logo    = "logo.svg"
-    variant = "modern"
+    favicon  = "logo.svg"
+    language = "es"
+    logo     = "logo.svg"
+    variant  = "modern"
 
     [[project.theme.palette]]
+      accent      = "custom"
       media       = "(prefers-color-scheme: light)"
+      primary     = "custom"
       scheme      = "default"
       toggle.icon = "lucide/sun"
-      toggle.name = "Go to dark mode!"
+      toggle.name = "Ir a modo oscuro"
 
     [[project.theme.palette]]
+      accent      = "custom"
       media       = "(prefers-color-scheme: dark)"
+      primary     = "custom"
       scheme      = "slate"
       toggle.icon = "lucide/moon"
-      toggle.name = "Go to light mode!"
+      toggle.name = "Ir a modo claro"
 
   [project.validation]
-    invalid_link_anchors  = false
-    invalid_links         = false
-    shadowed_definitions  = false
-    shadowed_footnotes    = false
-    unresolved_footnotes  = false
+    invalid_link_anchors  = true
+    invalid_links         = true
+    shadowed_definitions  = true
+    shadowed_footnotes    = true
+    unresolved_footnotes  = true
     unresolved_references = false
     unused_definitions    = false
-    unused_footnotes      = false
+    unused_footnotes      = true

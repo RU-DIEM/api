@@ -2,11 +2,11 @@ services:
   migrate:
     build:
       cache_from:
-        - type=gha,scope=api-prod
+        - type=gha,scope=rudiapi-prod
 
-  api-prod:
+  rudiapi-prod:
     build:
       cache_from:
-        - type=gha,scope=api-prod
+        - type=gha,scope=rudiapi-prod
       cache_to:
-        - type=gha,mode=max,scope=api-prod
+        - type=gha,mode=max,scope=rudiapi-prod

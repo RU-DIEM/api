@@ -8,11 +8,11 @@
 </div>
 
 <h1 align="center">
-  <code>backend-factory</code>
+  <code>rudi-api</code>
 </h1>
 
 <h3 align="center">
-  backend factory!
+  Microservicios para el sistema **`RUDI`**
 </h3>
 
 <div align="center">

@@ -22,12 +22,11 @@
     "redis[hiredis]>=8.1.0",
   ]
 
-  name            = "api"
+  name            = "rudi-api"
   version         = "0.0.1"
-  description     = "backend!"
+  description     = "Microservicios para el sistema RUDI."
   readme          = { file = "README.md" }
   requires-python = ">=3.14.0"
-  license-files   = ["LICENSE.md"]
 
 [dependency-groups]
   dev = [

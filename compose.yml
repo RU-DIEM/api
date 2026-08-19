@@ -1,19 +1,19 @@
-name: api
+name: rudiapi
 
-x-api-build: &api-build
+x-rudiapi-build: &rudiapi-build
   context: .
   dockerfile: dockerfile
 
-x-api-env: &api-env
-  DATABASE_URL: postgresql://api:api@postgres:5432/api
+x-rudiapi-env: &rudiapi-env
+  DATABASE_URL: postgresql://rudiapi:rudiapi@postgres:5432/rudiapi
   DEPLOY: ${DEPLOY:-False}
   JWT_SECRET_KEY: ${JWT_SECRET_KEY:?}
-  REDIS_SECRET_KEY: api
+  REDIS_SECRET_KEY: rudiapi
   REDIS_URL: redis://redis:6379
   SECRET_KEY: ${SECRET_KEY:?}
   SKIP_SEEDERS: ${SKIP_SEEDERS:-False}
 
-x-api-healthcheck: &api-healthcheck
+x-rudiapi-healthcheck: &rudiapi-healthcheck
   interval: 5s
   retries: 10
   start_period: 5s
@@ -27,13 +27,13 @@ x-api-healthcheck: &api-healthcheck
 services:
   postgres:
     environment:
-      POSTGRES_DB: api
-      POSTGRES_PASSWORD: api
-      POSTGRES_USER: api
+      POSTGRES_DB: rudiapi
+      POSTGRES_PASSWORD: rudiapi
+      POSTGRES_USER: rudiapi
     healthcheck:
       interval: 5s
       retries: 10
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U api -d api"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U rudiapi -d rudiapi"]
       timeout: 5s
     image: postgres:18
     ports:
@@ -42,11 +42,11 @@ services:
       - pgdata:/var/lib/postgresql
 
   redis:
-    command: ["redis-server", "--requirepass", "api", "--save", ""]
+    command: ["redis-server", "--requirepass", "rudiapi", "--save", ""]
     healthcheck:
       interval: 5s
       retries: 10
-      test: ["CMD", "redis-cli", "-a", "api", "ping"]
+      test: ["CMD", "redis-cli", "-a", "rudiapi", "ping"]
       timeout: 5s
     image: redis:8
     ports:
@@ -54,22 +54,22 @@ services:
 
   migrate:
     build:
-      <<: *api-build
+      <<: *rudiapi-build
       target: runtime-prod
     command: ["python", "src/manage.py", "migrate", "--no-input"]
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      <<: *api-env
+      <<: *rudiapi-env
       DEBUG: "False"
-    image: api:prod
+    image: rudiapi:prod
     profiles: ["dev", "prod"]
     restart: "no"
 
-  api-dev:
+  rudiapi-dev:
     build:
-      <<: *api-build
+      <<: *rudiapi-build
       target: runtime-dev
     depends_on:
       postgres:
@@ -77,19 +77,19 @@ services:
       redis:
         condition: service_healthy
     environment:
-      <<: *api-env
+      <<: *rudiapi-env
       DEBUG: ${DEBUG:-True}
-    healthcheck: *api-healthcheck
-    image: api:dev
+    healthcheck: *rudiapi-healthcheck
+    image: rudiapi:dev
     ports:
       - "8080:8080"
     profiles: ["dev"]
     volumes:
       - ./src:/app/src
 
-  api-prod:
+  rudiapi-prod:
     build:
-      <<: *api-build
+      <<: *rudiapi-build
       target: runtime-prod
     depends_on:
       postgres:
@@ -97,10 +97,10 @@ services:
       redis:
         condition: service_healthy
     environment:
-      <<: *api-env
+      <<: *rudiapi-env
       DEBUG: "False"
-    healthcheck: *api-healthcheck
-    image: api:prod
+    healthcheck: *rudiapi-healthcheck
+    image: rudiapi:prod
     ports:
       - "8080:8080"
     profiles: ["prod"]

@@ -1,0 +1,15 @@
+@media screen and (min-width: 60em) {
+  .md-header__title {
+    flex-grow: 1 !important;
+    order: 0 !important;
+  }
+
+  .md-header__option {
+    order: 1 !important;
+  }
+
+  .md-search {
+    flex-grow: 0 !important;
+    order: 2 !important;
+  }
+}

@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: |
         {
-          echo "DATABASE_URL=postgresql://api:api@127.0.0.1:5432/api"
-          echo "REDIS_SECRET_KEY=api"
+          echo "DATABASE_URL=postgresql://rudiapi:rudiapi@127.0.0.1:5432/rudiapi"
+          echo "REDIS_SECRET_KEY=rudiapi"
           echo "REDIS_URL=redis://127.0.0.1:6379"
         } >> "$GITHUB_ENV"
