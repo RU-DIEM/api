@@ -104,6 +104,8 @@ INSTALLED_APPS: Final[Sequence[str]] = (
     "pghistory",
     "api_core",
     "api_auth",
+    "rudi_core",
+    "rudi_estados",
 )
 
 MIDDLEWARE: Final[Sequence[str]] = (
