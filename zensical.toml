@@ -32,6 +32,7 @@
     },
     {
       "Actores del sistema" = [
+        "actores/index.md",
         "actores/administracion.md",
         "actores/participantes.md",
       ],
@@ -69,6 +70,45 @@
             "modelo-dominio/procesos.md",
             "modelo-dominio/extensiones.md",
             "modelo-dominio/riesgos.md",
+          ],
+        },
+      ],
+    },
+    {
+      "Diagramas entidad-relación" = [
+        {
+          "Modelo físico" = [
+            "diagramas/entidad-relacion/fisico/catalogos.md",
+            "diagramas/entidad-relacion/fisico/taxonomias.md",
+            "diagramas/entidad-relacion/fisico/identidad.md",
+            "diagramas/entidad-relacion/fisico/perfiles.md",
+            "diagramas/entidad-relacion/fisico/actividades.md",
+            "diagramas/entidad-relacion/fisico/participacion.md",
+            "diagramas/entidad-relacion/fisico/puntos.md",
+            "diagramas/entidad-relacion/fisico/constancias.md",
+            "diagramas/entidad-relacion/fisico/portafolio.md",
+            "diagramas/entidad-relacion/fisico/analitica.md",
+            "diagramas/entidad-relacion/fisico/auditoria.md",
+          ],
+        },
+      ],
+    },
+    {
+      "Diagramas de estados" = [
+        {
+          "Entidades" = [
+            "diagramas/estados/usuario.md",
+            "diagramas/estados/actividad.md",
+            "diagramas/estados/inscripcion.md",
+            "diagramas/estados/participacion.md",
+            "diagramas/estados/constancia.md",
+            "diagramas/estados/propuesta.md",
+          ],
+        },
+        {
+          "Vínculos" = [
+            "diagramas/estados/consentimiento.md",
+            "diagramas/estados/asignacion-mentor.md",
           ],
         },
       ],

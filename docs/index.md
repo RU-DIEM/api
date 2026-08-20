@@ -48,6 +48,6 @@ icon: lucide/home
 </div>
 
 [act]: actores/index.md
-[cu]: casos-uso/index.md
+[cu]: casos-uso/administracion.md
 [mod]: modelo-dominio/index.md
-[req]: requerimientos/index.md
+[req]: requerimientos/reglas-negocio.md

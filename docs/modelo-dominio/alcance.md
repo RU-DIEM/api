@@ -59,17 +59,11 @@ reversibles sin migración destructiva; los enganches están en
 
 !!! warning "Sobre el portafolio de innovación"
 
-    El análisis preliminar no enuncia ningún requerimiento de portafolio: menciona
-    proyectos como un tipo de actividad y nada más. La matriz de portafolio, en
-    cambio, define veintidós campos con taxonomías completas y un código de
-    proyecto que la matriz de participaciones ya referencia.
-
-    Este modelo incluye el portafolio porque sin él la columna _código del
+    Este modelo incluye el portafolio porque, sin él, la columna _código del
     proyecto_ de la matriz de participaciones queda apuntando a un vacío. Su
     alcance es el de la matriz: registro, clasificación y trayectoria. No incluye
     seguimiento de hitos, presupuesto, propiedad intelectual ni transferencia
-    tecnológica, que la matriz tampoco cubre. Confirmar el alcance antes de
-    escribir migraciones: ver [`R-08`][r-08].
+    tecnológica, que la matriz tampoco cubre.
 
 [extensiones]: extensiones.md
 [e-01]: extensiones.md#e-01
