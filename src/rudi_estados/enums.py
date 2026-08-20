@@ -5,16 +5,16 @@ from django.db.models import TextChoices
 
 class ActorTypes(TextChoices):
     ADMIN = "administracion"
-    PART = "participante"
     SYS = "sistema"
+    USER = "participante"
 
 
 ########################################################################################
 
 
 class InputSourceTypes(TextChoices):
-    IMPORTACION = "importacion"
-    PORTAL = "portal"
+    LEGACY = "importacion"
+    MODERN = "sistema"
 
 
 ########################################################################################

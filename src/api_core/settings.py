@@ -106,6 +106,7 @@ INSTALLED_APPS: Final[Sequence[str]] = (
     "api_auth",
     "rudi_core",
     "rudi_estados",
+    "rudi_catalogos",
 )
 
 MIDDLEWARE: Final[Sequence[str]] = (
@@ -142,6 +143,9 @@ SILENCED_SYSTEM_CHECKS: Final[Sequence[str]] = (
     # - ignore 30-character limit for constraints/indices
     #   - ok because postgres' limit is 63
     "models.E034",
+    # - ignore "unvalidated" RawSQL CheckConstraints
+    #   - ok because we know what we're doing
+    "models.W045",
     # - ignore missing `ClickjackingMiddleware`
     #   - ok because API does not serve HTML
     "security.W002",
