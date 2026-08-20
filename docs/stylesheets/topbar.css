@@ -5,11 +5,11 @@
   }
 
   .md-header__option {
-    order: 1 !important;
+    order: 2 !important;
   }
 
   .md-search {
     flex-grow: 0 !important;
-    order: 2 !important;
+    order: 3 !important;
   }
 }

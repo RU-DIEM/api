@@ -1,4 +1,7 @@
 ---
+hide:
+  - navigation
+  - toc
 icon: lucide/home
 ---
 
@@ -12,13 +15,13 @@ icon: lucide/home
 </div>
 
 <h1 align="center">
-  <code>backend-factory</code>
+  <code>rudi-api</code>
 </h1>
 
 ---
 
-<h3 align="center">
-  backend factory!
+<h3 align="center" markdown>
+  Microservicios para el sistema `RUDI`
 </h3>
 
 <div align="center" markdown>
@@ -32,3 +35,19 @@ icon: lucide/home
 [![uv.][uv-badge]][uv-docs]
 
 </div>
+
+<div align="center" markdown>
+
+|         Sección          |                      Contenido                       |
+| :----------------------: | :--------------------------------------------------: |
+|  [Requerimientos][req]   | 79 requerimientos funcionales y 18 reglas de negocio |
+|      [Actores][act]      |           7 actores humanos y 2 no humanos           |
+|    [Casos de uso][cu]    |                   37 casos de uso                    |
+| [Modelo de dominio][mod] |               82 tablas en 12 módulos                |
+
+</div>
+
+[act]: actores/index.md
+[cu]: casos-uso/index.md
+[mod]: modelo-dominio/index.md
+[req]: requerimientos/index.md

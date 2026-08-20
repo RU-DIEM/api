@@ -14,14 +14,13 @@
 
   site_author      = "Joaquín Zúñiga"
   site_description = "Documentación de microservicios para el sistema RUDI."
-  site_name        = "rudi-api"
+  site_name        = "rudi-api-docs"
   site_url         = "https://ru-diem.github.io/api/"
 
   nav = [
     { "Inicio" = "index.md" },
     {
       "Requerimientos" = [
-        "requerimientos/index.md",
         "requerimientos/reglas-negocio.md",
         {
           "Funcionales" = [
@@ -33,14 +32,12 @@
     },
     {
       "Actores del sistema" = [
-        "actores/index.md",
         "actores/administracion.md",
         "actores/participantes.md",
       ],
     },
     {
       "Casos de uso" = [
-        "casos-uso/index.md",
         "casos-uso/administracion.md",
         "casos-uso/participantes.md",
       ],
@@ -158,17 +155,13 @@
     variant  = "modern"
 
     [[project.theme.palette]]
-      accent      = "custom"
       media       = "(prefers-color-scheme: light)"
-      primary     = "custom"
       scheme      = "default"
       toggle.icon = "lucide/sun"
       toggle.name = "Ir a modo oscuro"
 
     [[project.theme.palette]]
-      accent      = "custom"
       media       = "(prefers-color-scheme: dark)"
-      primary     = "custom"
       scheme      = "slate"
       toggle.icon = "lucide/moon"
       toggle.name = "Ir a modo claro"

@@ -12,7 +12,7 @@
 </h1>
 
 <h3 align="center">
-  Microservicios para el sistema **`RUDI`**
+  Microservicios para el sistema <b><code>RUDI</code></b>
 </h3>
 
 <div align="center">
