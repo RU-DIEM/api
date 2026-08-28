@@ -7,10 +7,10 @@ from django.db.models import (
     Q,
     UniqueConstraint,
 )
-from django.db.models.functions import Lower
 
 from rudi_catalogos.enums import MotivoAmbitoTypes, MotivoVisibilidadTypes
-from rudi_catalogos.models.base import RudiCatalogo
+
+from .base import RudiCatalogo
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -33,7 +33,9 @@ class Motivo(RudiCatalogo):
     class Meta(RudiCatalogo.Meta):
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *filter(
-                lambda c: "descripcion" not in c.name,
+                lambda c: (
+                    c.name not in {"chk_%(class)s_descripcion", "unq_%(class)s_codigo"}
+                ),
                 RudiCatalogo.Meta.constraints,
             ),
             CheckConstraint(
@@ -45,8 +47,7 @@ class Motivo(RudiCatalogo):
                 name="chk_%(class)s_visibilidad",
             ),
             UniqueConstraint(
-                Lower("codigo"),
-                Lower("ambito"),
+                fields=["ambito", "codigo"],
                 name="unq_%(class)s_ambito",
             ),
         )

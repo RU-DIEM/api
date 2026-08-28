@@ -1,19 +1,18 @@
 from typing import TYPE_CHECKING, Final
 
+from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
-    BooleanField,
     CharField,
     CheckConstraint,
-    JSONField,
     Q,
     TextField,
 )
-from django.db.models.expressions import RawSQL
-from django.db.models.functions import JSONArray
-from pgtrigger import AnyChange, Before, Insert, Row, Trigger, Update
+from django.db.models.expressions import Value
+from pgtrigger import AnyChange, Before, Insert, Trigger, Update
 
 from api_utils.strings import normalize_trigger
-from rudi_catalogos.models.base import RudiCatalogo
+
+from .base import RudiCatalogo
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -29,25 +28,29 @@ DECLARE
 BEGIN
     IF EXISTS (
         SELECT 1
-        FROM jsonb_array_elements_text(NEW.variables)
-        AS elem
-        WHERE NEW.asunto NOT LIKE '%{' || elem || '}%'
+        FROM unnest(NEW.variables)
+        AS elemento
+        WHERE NEW.asunto NOT LIKE '%{' || elemento || '}%'
         AND
-        NEW.cuerpo NOT LIKE '%{' || elem || '}%'
+        NEW.cuerpo NOT LIKE '%{' || elemento || '}%'
     ) THEN
         RAISE check_violation
         USING
             COLUMN = 'variables',
             MESSAGE = 'Una de las variables especificadas no está presente en el asunto o el cuerpo de la plantilla.';
     END IF;
-    FOR campo, texto IN
-        VALUES ('asunto', NEW.asunto), ('cuerpo', NEW.cuerpo)
+    FOR
+        campo,
+        texto
+    IN VALUES
+        ('asunto', NEW.asunto),
+        ('cuerpo', NEW.cuerpo)
     LOOP
         IF EXISTS (
             SELECT 1
             FROM regexp_matches(texto, '\{([^}]+)\}', 'g')
             AS match(m)
-            WHERE NOT (NEW.variables ? match.m[1])
+            WHERE NOT (match.m[1] = ANY(NEW.variables))
         ) THEN
             RAISE check_violation
             USING
@@ -67,21 +70,17 @@ class PlantillaMensaje(RudiCatalogo):
 
     asunto = CharField(max_length=200)
     cuerpo = TextField()
-    variables = JSONField(db_default=JSONArray(), default=list)
+    variables = ArrayField(
+        base_field=CharField(max_length=50),
+        db_default=Value(value=[], output_field=ArrayField(CharField(max_length=50))),
+        default=list,
+    )
 
     class Meta(RudiCatalogo.Meta):
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *filter(
-                lambda c: "descripcion" not in c.name,
+                lambda c: c.name != "chk_%(class)s_descripcion",
                 RudiCatalogo.Meta.constraints,
-            ),
-            CheckConstraint(
-                condition=RawSQL(
-                    params=(),
-                    output_field=BooleanField(),
-                    sql="jsonb_typeof(variables) = 'array'",
-                ),
-                name="chk_%(class)s_variables",
             ),
             CheckConstraint(
                 condition=Q(cuerpo__len__gte=1, cuerpo__len__lte=8_000),
@@ -92,7 +91,6 @@ class PlantillaMensaje(RudiCatalogo):
         triggers: Sequence[Trigger] = (
             *RudiCatalogo.Meta.triggers,
             Trigger(
-                level=Row,
                 name="trg_plantillamensaje_variables_insert_integrity",
                 operation=Insert,
                 when=Before,
@@ -100,7 +98,6 @@ class PlantillaMensaje(RudiCatalogo):
             ),
             Trigger(
                 condition=AnyChange("asunto", "cuerpo", "variables"),
-                level=Row,
                 name="trg_plantillamensaje_variables_update_integrity",
                 operation=Update,
                 when=Before,

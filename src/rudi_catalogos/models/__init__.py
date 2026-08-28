@@ -7,6 +7,7 @@ from .base import (
     TipoMentor,
     TipoReconocimiento,
 )
+from .identificador import TipoIdentificador
 from .motivo import Motivo
 from .parametro import Parametro
 from .plantilla import PlantillaMensaje
@@ -26,6 +27,7 @@ __all__: Sequence[str] = (
     "PlantillaMensaje",
     "RolParticipacion",
     "TipoActividad",
+    "TipoIdentificador",
     "TipoMentor",
     "TipoReconocimiento",
 )

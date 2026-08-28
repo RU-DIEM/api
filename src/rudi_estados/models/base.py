@@ -7,7 +7,6 @@ from django.db.models import (
     CheckConstraint,
     F,
     ForeignKey,
-    Index,
     Q,
     TextField,
     UniqueConstraint,
@@ -60,15 +59,6 @@ class RudiEstado(RudiSoftDeleteModel):
             ),
         )
 
-        indexes: Sequence[Index] = (
-            *RudiSoftDeleteModel.Meta.indexes,
-            Index(
-                condition=Q(is_active=True),
-                fields=["codigo"],
-                name="idx_%(class)s_codigo",
-            ),
-        )
-
         triggers: Sequence[Trigger] = (
             *RudiSoftDeleteModel.Meta.triggers,
             ReadOnly(fields=["codigo"], name="trg_readonly_codigo"),
@@ -83,7 +73,10 @@ class RudiSourceAwareEstado(RudiEstado, SourceFieldMixin):
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
-            *filter(lambda c: "initial" not in c.name, RudiEstado.Meta.constraints),
+            *filter(
+                lambda c: c.name != "unq_%(class)s_initial",
+                RudiEstado.Meta.constraints,
+            ),
             *SourceFieldMixin.Meta.constraints,
         )
 
@@ -99,7 +92,7 @@ class RudiTransicion(RudiSoftDeleteModel, RequireMotivoFieldMixin):
     class Meta(RudiSoftDeleteModel.Meta):
         abstract: bool = True
 
-        constraints: Sequence[CheckConstraint] = (
+        constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(actor__in=ActorTypes.values),
                 name="chk_%(class)s_actor",
@@ -122,11 +115,15 @@ def build_concrete_transicion(ref: type[RudiEstado]) -> type[RudiTransicion]:
         class Meta(RudiTransicion.Meta):
             abstract: bool = True
 
-            constraints: Sequence[CheckConstraint] = (
+            constraints: Sequence[CheckConstraint | UniqueConstraint] = (
                 *RudiTransicion.Meta.constraints,
                 CheckConstraint(
                     condition=(~Q(from_estado=F(name="to_estado"))),
                     name="chk_%(class)s_noreflex",
+                ),
+                UniqueConstraint(
+                    fields=["actor", "from_estado", "to_estado"],
+                    name="unq_%(class)s_combo",
                 ),
             )
 

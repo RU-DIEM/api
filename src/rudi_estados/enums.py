@@ -15,6 +15,7 @@ class ActorTypes(TextChoices):
 class InputSourceTypes(TextChoices):
     LEGACY = "importacion"
     MODERN = "sistema"
+    SELF = "usuario"
 
 
 ########################################################################################

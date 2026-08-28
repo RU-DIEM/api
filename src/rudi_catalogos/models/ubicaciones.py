@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING
 
 from django.db.models import RESTRICT, CharField, F, ForeignKey, UniqueConstraint
-from django.db.models.functions import Lower
+from django.db.models.functions import Upper
 
-from rudi_core.models import RudiAppendOnlyModel
+from api_utils.db import ImmutableUnaccent
+from rudi_core.models import RudiSoftDeleteModel
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -11,16 +12,19 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
-class Departamento(RudiAppendOnlyModel):
+class Departamento(RudiSoftDeleteModel):
     nombre = CharField(max_length=30)
 
-    class Meta(RudiAppendOnlyModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):
         constraints: Sequence[UniqueConstraint] = (
-            UniqueConstraint(Lower("nombre"), name="unq_%(class)s_nombre"),
+            UniqueConstraint(
+                Upper(ImmutableUnaccent("nombre")),
+                name="unq_%(class)s_nombre",
+            ),
         )
 
 
-class Municipio(RudiAppendOnlyModel):
+class Municipio(RudiSoftDeleteModel):
     departamento = ForeignKey(
         on_delete=RESTRICT,
         related_name="municipios",
@@ -29,12 +33,11 @@ class Municipio(RudiAppendOnlyModel):
 
     nombre = CharField(max_length=30)
 
-    class Meta(RudiAppendOnlyModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):
         constraints: Sequence[UniqueConstraint] = (
-            UniqueConstraint(Lower("nombre"), name="unq_%(class)s_nombre"),
             UniqueConstraint(
                 F("departamento"),
-                Lower("nombre"),
+                Upper(ImmutableUnaccent("nombre")),
                 name="unq_%(class)s_nombre_departamento",
             ),
         )

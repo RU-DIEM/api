@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
 from django.db.models import CharField, CheckConstraint, Q, TextField, UniqueConstraint
-from django.db.models.functions import Lower
 from pgtrigger import ReadOnly, Trigger
 
 from rudi_core.models import RudiSoftDeleteModel
@@ -22,19 +21,19 @@ class RudiCatalogo(RudiSoftDeleteModel):
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
-                condition=Q(codigo__regex=r"^[\p{L}\d_-]+(\.[\p{L}\d_-]+)*$"),
+                condition=Q(codigo__regex=r"^[a-z][a-z0-9_]*$"),
                 name="chk_%(class)s_codigo_format",
             ),
             CheckConstraint(
                 condition=Q(descripcion__len__lte=300),
                 name="chk_%(class)s_descripcion",
             ),
-            UniqueConstraint(Lower("codigo"), name="unq_%(class)s_codigo"),
+            UniqueConstraint(fields=["codigo"], name="unq_%(class)s_codigo"),
         )
 
         triggers: Sequence[Trigger] = (
             *RudiSoftDeleteModel.Meta.triggers,
-            ReadOnly(fields=["codigo"], name="trg_parametro_readonly_codigo"),
+            ReadOnly(fields=["codigo"], name="trg_readonly_codigo"),
         )
 
 

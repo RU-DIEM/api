@@ -107,6 +107,8 @@ INSTALLED_APPS: Final[Sequence[str]] = (
     "rudi_core",
     "rudi_estados",
     "rudi_catalogos",
+    "rudi_auth",
+    "rudi_profiles",
 )
 
 MIDDLEWARE: Final[Sequence[str]] = (

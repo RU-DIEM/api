@@ -51,11 +51,17 @@ class RudiModel(ApiModel):
 
 @disjoint_base
 class RudiAppendOnlyModel(RudiModel):
+    updated_at = None
+
     class Meta(RudiModel.Meta):
         abstract: bool = True
 
+        indexes: Sequence[Index] = tuple(
+            filter(lambda i: "updated" not in i.name, RudiModel.Meta.indexes)
+        )
+
         triggers: Sequence[Trigger] = (
-            *RudiModel.Meta.triggers,
+            *ApiModel.Meta.triggers,
             Protect(name="trg_append_only", operation=(Delete | Update)),
         )
 
