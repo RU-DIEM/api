@@ -5,12 +5,15 @@ from .detail import (
     ModelDetailController,
     ModelManyToManyDetailController,
     ModelNestedDetailController,
+    ModelReadOnlyDetailController,
+    ModelReadUpdateDetailController,
 )
 from .list import (
     ModelListAllController,
     ModelListController,
     ModelManyToManyListController,
     ModelNestedListController,
+    ModelReadOnlyListController,
 )
 
 if TYPE_CHECKING:
@@ -27,4 +30,7 @@ __all__: Sequence[str] = (
     "ModelManyToManyListController",
     "ModelNestedDetailController",
     "ModelNestedListController",
+    "ModelReadOnlyDetailController",
+    "ModelReadOnlyListController",
+    "ModelReadUpdateDetailController",
 )

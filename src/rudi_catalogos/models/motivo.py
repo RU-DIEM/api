@@ -7,6 +7,7 @@ from django.db.models import (
     Q,
     UniqueConstraint,
 )
+from pgtrigger import ReadOnly, Trigger
 
 from rudi_catalogos.enums import MotivoAmbitoTypes, MotivoVisibilidadTypes
 
@@ -50,4 +51,9 @@ class Motivo(RudiCatalogo):
                 fields=["ambito", "codigo"],
                 name="unq_%(class)s_ambito",
             ),
+        )
+
+        triggers: Sequence[Trigger] = (
+            *RudiCatalogo.Meta.triggers,
+            ReadOnly(fields=["ambito"], name="trg_readonly_ambito"),
         )

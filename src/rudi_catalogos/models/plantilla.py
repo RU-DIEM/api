@@ -1,12 +1,7 @@
 from typing import TYPE_CHECKING, Final
 
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import (
-    CharField,
-    CheckConstraint,
-    Q,
-    TextField,
-)
+from django.db.models import CharField, CheckConstraint, Q, TextField
 from django.db.models.expressions import Value
 from pgtrigger import AnyChange, Before, Insert, Trigger, Update
 

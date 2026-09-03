@@ -4,6 +4,8 @@ from dmr.openapi import build_schema
 from dmr.routing import Router
 
 import api_auth.api
+import rudi_catalogos.api
+import rudi_estados.api
 
 from api_core.controllers.routers import sort_urls
 
@@ -16,7 +18,11 @@ if TYPE_CHECKING:
 
 router: Final[Router] = Router(
     prefix="",
-    urls=sort_urls((*api_auth.api.router.urls,)),
+    urls=sort_urls((
+        *api_auth.api.router.urls,
+        *rudi_catalogos.api.router.urls,
+        *rudi_estados.api.router.urls,
+    )),
 )
 
 schema: Final[OpenAPI] = build_schema(router)

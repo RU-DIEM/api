@@ -14,6 +14,9 @@ from .models import (
     ModelDetailController,
     ModelListAllController,
     ModelListController,
+    ModelReadOnlyDetailController,
+    ModelReadOnlyListController,
+    ModelReadUpdateDetailController,
 )
 
 ########################################################################################
@@ -110,7 +113,14 @@ def route_inferred_controller(
     prefix: str,
     **kwargs: str | tuple[str, str] | None,
 ) -> URL:
-    if issubclass(ctrl, ModelDetailController):
+    if issubclass(
+        ctrl,
+        (
+            ModelDetailController,
+            ModelReadOnlyDetailController,
+            ModelReadUpdateDetailController,
+        ),
+    ):
         kwargs["suffix"] = (
             f"detail-{kwargs['suffix']}" if "suffix" in kwargs else "detail"
         )
@@ -129,7 +139,7 @@ def route_inferred_controller(
             **kwargs,  # ty: ignore[invalid-argument-type]
         )
 
-    if issubclass(ctrl, ModelListController):
+    if issubclass(ctrl, (ModelListController, ModelReadOnlyListController)):
         kwargs["suffix"] = f"list-{kwargs['suffix']}" if "suffix" in kwargs else "list"
 
         return route_controller(

@@ -146,3 +146,31 @@ class ModelManyToManyListController[
     ],
 ):
     create_operation: ClassVar[type[CreateOperation]] = ManyToManyCreateOperation
+
+
+########################################################################################
+
+
+class ModelReadOnlyListController[
+    Serializer: BaseSerializer,
+    Model: DatabaseModel,
+    ModelFilter: FilterSet,
+    FilterQuery: PaginatedFilterQuery,
+    Get: DTO,
+    PaginatedGet: DTO,
+](ModelController[Serializer, Model, Get]):
+    filterset: type[ModelFilter]
+
+    async def get(self, parsed_query: StrictQuery[FilterQuery]) -> PaginatedGet:
+        filtered: QuerySet = await apply_filterset(
+            filterset=self.filterset,
+            data=parsed_query.get_filters(),
+            qs=self.qs,
+        )
+
+        return await paginated_mapper(  # ty:ignore[invalid-return-type]
+            mapper=self.mapper,
+            schema=self.schema,
+            qs=filtered,
+            query=parsed_query,
+        )
