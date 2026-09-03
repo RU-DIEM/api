@@ -113,8 +113,7 @@ class RudiUser(RudiProtectedModel):
 
     fecha_nacimiento = DateField(null=True)
 
-    telefono_pais = CharField(db_default="+505", default="+505", max_length=4)
-    telefono_numero = CharField(db_default="", default="", max_length=8)
+    telefono = CharField(db_default="", default="", max_length=20)
 
     genero = CharField(db_default="", default="", max_length=20)
     etnia = CharField(db_default="", default="", max_length=20)
@@ -140,16 +139,6 @@ class RudiUser(RudiProtectedModel):
             CheckConstraint(
                 condition=Q(talla__in=(*TallasCamisa.values, "")),
                 name="chk_%(class)s_talla",
-            ),
-            CheckConstraint(
-                condition=Q(telefono_pais__regex=r"^\+[0-9]{1,3}$"),
-                name="chk_%(class)s_telefono_pais",
-            ),
-            CheckConstraint(
-                condition=(
-                    Q(telefono_numero="") | Q(telefono_numero__regex=r"^[0-9]{8}$")
-                ),
-                name="chk_%(class)s_telefono_numero",
             ),
         )
 
