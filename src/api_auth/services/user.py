@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Protocol, override
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth import aauthenticate, get_user_model
@@ -28,6 +28,14 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
+class PasswordPair(Protocol):
+    password1: str
+    password2: str
+
+
+########################################################################################
+
+
 @sensitive_variables()
 async def authenticate_user(data: LoginPost, request: HttpRequest) -> ApiUser:
     user: ApiUser | None = await aauthenticate(
@@ -50,7 +58,7 @@ async def authenticate_user(data: LoginPost, request: HttpRequest) -> ApiUser:
 
 
 @sensitive_variables()
-def check_password_match(data: ApiUserPost) -> None:
+def check_password_match(data: PasswordPair) -> None:
     if data.password1 == data.password2:
         return
 
@@ -66,12 +74,12 @@ def check_password_match(data: ApiUserPost) -> None:
 
 
 @sensitive_variables()
-def check_password_strength(data: ApiUserPost, user: ApiUser | None = None) -> None:
+def check_password_strength(data: PasswordPair, user: ApiUser | None = None) -> None:
     subject: ApiUser = user or get_user_model()(
-        email=data.email,
-        first_name=data.first_name,
-        last_name=data.last_name,
-        username=data.username,
+        email=data.email,  # ty: ignore[unresolved-attribute]
+        first_name=data.first_name,  # ty: ignore[unresolved-attribute]
+        last_name=data.last_name,  # ty: ignore[unresolved-attribute]
+        username=data.username,  # ty: ignore[unresolved-attribute]
     )
 
     try:
