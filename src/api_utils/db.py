@@ -49,11 +49,16 @@ def set_immediate_constraints() -> None:
 
     Should only ever be called from within a `django.db.transaction.atomic` block.
 
-    The query is rolled back at the end of the transaction.
+    `SET CONSTRAINTS ALL IMMEDIATE` evaluates every pending deferred constraint
+    and leaves the transaction in immediate mode for the statements that follow.
+    Restoring deferred mode afterwards keeps the check local to the caller, so a
+    transaction that spans several operations (a test case, a nested `atomic`)
+    does not silently lose the deferral the schema declares.
     """
 
     with get_connection().cursor() as cursor:
         cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+        cursor.execute("SET CONSTRAINTS ALL DEFERRED")
 
 
 ########################################################################################
