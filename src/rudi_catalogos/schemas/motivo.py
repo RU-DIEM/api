@@ -5,6 +5,7 @@ from api_core.schemas.factories import (
     build_put_schema,
 )
 from api_core.schemas.filters import PaginatedFilterQuery, UnpaginatedFilterQuery
+from api_core.schemas.get import LaxEnum
 from rudi_catalogos.enums import MotivoAmbitoTypes, MotivoVisibilidadTypes
 from rudi_catalogos.filtersets.motivo import MotivoFilterSet
 
@@ -34,14 +35,14 @@ class MotivoWrite(DTO):
     is_active: bool = True
 
     require_descripcion: bool = False
-    visibilidad: MotivoVisibilidadTypes = MotivoVisibilidadTypes.ADMIN
+    visibilidad: LaxEnum[MotivoVisibilidadTypes] = MotivoVisibilidadTypes.ADMIN
 
 
 ########################################################################################
 
 
 class MotivoPost(MotivoWrite):
-    ambito: MotivoAmbitoTypes
+    ambito: LaxEnum[MotivoAmbitoTypes]
     codigo: CatalogoCodigo
 
 

@@ -58,7 +58,7 @@ def instance_mapper[Get: DTO](obj: DatabaseModel, schema: type[Get]) -> Get:
     m2m: frozenset[str] = collect_m2m_names(schema)
 
     if not m2m:
-        return schema.model_validate(obj)
+        return schema.model_validate(obj, strict=False)
 
     overrides: dict = {}
 
@@ -85,7 +85,7 @@ def instance_mapper[Get: DTO](obj: DatabaseModel, schema: type[Get]) -> Get:
             else tuple(related)
         )
 
-    return schema.model_validate(PrefetchedProxy(obj, overrides))
+    return schema.model_validate(PrefetchedProxy(obj, overrides), strict=False)
 
 
 ########################################################################################
