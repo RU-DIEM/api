@@ -3,6 +3,8 @@ import re
 from datetime import timedelta
 from typing import TYPE_CHECKING, Final
 
+from django.utils.timezone import now
+
 if TYPE_CHECKING:
     from re import Pattern
 
@@ -12,6 +14,13 @@ ISO_DURATION: Final[Pattern[str]] = re.compile(
     r"^P(?:(?P<days>\d+)D)?"
     r"(?:T(?:(?P<hours>\d+)H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?$",
 )
+
+########################################################################################
+
+
+def current_year() -> int:
+    return now().year
+
 
 ########################################################################################
 
