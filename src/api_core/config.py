@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import timedelta
 from functools import cached_property
 from typing import Annotated, Final, Literal, Self
@@ -5,6 +6,7 @@ from urllib.parse import unquote
 
 from psycopg import IsolationLevel
 from pydantic import (
+    HttpUrl,
     PostgresDsn,
     RedisDsn,
     SecretStr,
@@ -60,6 +62,16 @@ class ApiConfig(BaseSettings, PermissiveDTO):
 
     REDIS_SECRET_KEY: OptionalSecret = SecretStr(secret_value="")
 
+    DEFAULT_FROM_EMAIL: str = "no-reply@localhost"
+    EMAIL_BACKEND: str = "django.core.mail.backends.console.EmailBackend"
+    EMAIL_HOST: str = ""
+    EMAIL_HOST_PASSWORD: OptionalSecret = SecretStr(secret_value="")
+    EMAIL_HOST_USER: str = ""
+    EMAIL_PORT: int = 587
+    EMAIL_USE_TLS: bool = True
+
+    FRONTEND_URL: HttpUrl = HttpUrl("http://localhost:3000")
+
     @model_validator(mode="after")
     def check_cookie_policy(self) -> Self:
         if self.cookie_samesite == "None" and not self.cookie_secure:
@@ -84,6 +96,25 @@ class ApiConfig(BaseSettings, PermissiveDTO):
             raise ValueError("`DATABASE_URL` no define un usuario.")
         if host["password"] is None:
             raise ValueError("`DATABASE_URL` no define una contraseña.")
+
+        return self
+
+    @model_validator(mode="after")
+    def check_email_delivery(self) -> Self:
+        if not self.DEPLOY:
+            return self
+
+        missing: Sequence[str] = tuple(
+            name
+            for name in ("DEFAULT_FROM_EMAIL", "EMAIL_HOST")
+            if not getattr(self, name)
+        )
+
+        if missing:
+            raise ValueError(
+                f"{', '.join(f'`{name}`' for name in missing)} "
+                "es obligatorio cuando `DEPLOY=True`.",
+            )
 
         return self
 
