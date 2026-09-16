@@ -22,5 +22,18 @@ class OpenReadMixin:
 ########################################################################################
 
 
+class OpenWriteMixin:
+    permissions: ClassVar[dict[HTTPMethod, Sequence[str]]] = {
+        HTTPMethod.GET: (),
+        HTTPMethod.POST: (),
+        HTTPMethod.PUT: (T_CHANGE_PERM,),
+        HTTPMethod.PATCH: (T_CHANGE_PERM,),
+        HTTPMethod.DELETE: (T_DELETE_PERM,),
+    }
+
+
+########################################################################################
+
+
 class ReadOnlyMixin:
     permissions: ClassVar[dict[HTTPMethod, Sequence[str]]] = {HTTPMethod.GET: ()}
