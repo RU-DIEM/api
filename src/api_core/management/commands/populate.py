@@ -5,7 +5,21 @@ from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.db.transaction import atomic
 
+import api_auth.seeder
+import rudi_auth.seeder
+import rudi_catalogos.seeder
+
 from api_core.config import CONFIG
+
+########################################################################################
+
+
+@atomic
+def populate() -> None:
+    api_auth.seeder.execute()
+    rudi_catalogos.seeder.execute()
+    rudi_auth.seeder.execute()
+
 
 ########################################################################################
 
@@ -34,10 +48,6 @@ class Command(BaseCommand):
 
         self.stdout.write(msg=self.style.SUCCESS("Migraciones al día."))
 
-        self.populate()
+        populate()
 
         self.stdout.write(msg=self.style.SUCCESS("Base de datos populada."))
-
-    @atomic
-    def populate(self) -> None:
-        pass
