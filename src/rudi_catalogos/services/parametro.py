@@ -2,19 +2,44 @@ from typing import TYPE_CHECKING, override
 
 from api_core.services.operations.flat import FlatUpdateOperation
 from api_exceptions.enums import BadRequestErrorTypes, RequestScopes
-from api_exceptions.errors import BadRequestError
+from api_exceptions.errors import BadRequestError, NotFoundError
 from api_utils.dates import format_duration, parse_duration
 from rudi_catalogos.enums import ParametroTypes
+from rudi_catalogos.models import Parametro
 
 if TYPE_CHECKING:
+    from datetime import timedelta
+
     from django.db.models import QuerySet
 
     from api_auth.models import ApiUser
     from api_core.schemas.base import DTO
     from api_core.services.mappers import ModelMapper
     from api_utils.types import DatabaseModel
-    from rudi_catalogos.models import Parametro
     from rudi_catalogos.schemas.parametro import ParametroValor
+
+########################################################################################
+
+
+async def read_parametro(codigo: str, tipo: ParametroTypes):  # ruff: ignore[missing-return-type-undocumented-public-function]
+    parametro: Parametro | None = await Parametro.objects.filter(
+        codigo=codigo,
+        is_active=True,
+        tipo=tipo,
+    ).afirst()
+
+    if parametro is None:
+        raise NotFoundError(field_errors={"codigo": codigo, "tipo": tipo})
+
+    return parametro.valor
+
+
+########################################################################################
+
+
+async def read_duracion(codigo: str) -> timedelta:
+    return parse_duration(await read_parametro(codigo, ParametroTypes.TIME))
+
 
 ########################################################################################
 
