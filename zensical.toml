@@ -9,7 +9,7 @@
   repo_name = "jp-zuniga/backend-factory"
   repo_url  = "https://github.com/jp-zuniga/backend-factory"
 
-  site_author      = "Joaquín Zúñiga"
+  site_author      = "Joaquín Zúñiga <jp.zuniga.dev@gmail.com>"
   site_description = "backend-factory"
   site_name        = "backend-factory"
 
@@ -28,6 +28,10 @@
       ],
     },
   ]
+
+  [[project.extra.social]]
+    icon = "fontawesome/brands/github"
+    link = "https://github.com/jp-zuniga/backend-factory"
 
   [project.markdown_extensions]
     abbr       = {}
@@ -76,8 +80,24 @@
           object    = "pymdownx.slugs.slugify",
         }
 
-    [[project.markdown_extensions.zensical.extensions.preview.configurations]]
-      targets.include = ["**/*.md"]
+    [project.markdown_extensions.zensical.extensions]
+      preview.configurations = [{ targets = { include = ["**/*.md"] } }]
+
+  [project.plugins.mkdocstrings.handlers.python.options]
+    docstring_style             = "google"
+    inherited_members           = true
+    line_length                 = 88
+    heading_level               = 2
+    modernize_annotations       = true
+    separate_signature          = true
+    show_root_heading           = true
+    show_root_full_path         = true
+    show_root_members_full_path = true
+    show_signature_annotations  = true
+    show_source                 = true
+    show_symbol_type_heading    = true
+    show_symbol_type_toc        = true
+    signature_crossrefs         = true
 
   [project.theme]
     features = [
@@ -89,6 +109,8 @@
       "navigation.instant.prefetch",
       "navigation.instant.progress",
       "navigation.path",
+      "navigation.pruning",
+      "navigation.top",
     ]
 
     favicon = "logo.svg"
@@ -99,13 +121,13 @@
       media       = "(prefers-color-scheme: light)"
       scheme      = "default"
       toggle.icon = "lucide/sun"
-      toggle.name = "Go to dark mode"
+      toggle.name = "Toggle dark mode"
 
     [[project.theme.palette]]
       media       = "(prefers-color-scheme: dark)"
       scheme      = "slate"
       toggle.icon = "lucide/moon"
-      toggle.name = "Go to light mode"
+      toggle.name = "Toggle light mode"
 
   [project.validation]
     invalid_link_anchors  = true

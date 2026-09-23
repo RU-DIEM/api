@@ -57,7 +57,9 @@ class AuthController[Serializer: BaseSerializer](
     StrictThrottlingMixin,
     BaseController[Serializer],
 ):
-    pass
+    """
+    All auth controllers are public with strict throttling settings by default.
+    """
 
 
 ########################################################################################
@@ -67,7 +69,9 @@ class PrivateAuthController[Serializer: BaseSerializer](
     StrictThrottlingMixin,
     BaseController[Serializer],
 ):
-    pass
+    """
+    Mainly used for two-factor controllers, which require a valid account.
+    """
 
 
 ########################################################################################

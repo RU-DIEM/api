@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 router: Final[Router] = Router(prefix="")
 
-# `Router.include` keeps each router's own tags, unlike splicing its urls
 router.include(api_auth.api.router)
 
 schema: Final[OpenAPI] = build_schema(router)

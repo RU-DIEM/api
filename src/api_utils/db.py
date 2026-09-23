@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
     from api_utils.types import DatabaseModel
 
-
 ########################################################################################
 
 

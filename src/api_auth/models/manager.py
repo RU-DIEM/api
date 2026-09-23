@@ -5,6 +5,8 @@ from django.contrib.auth.models import UserManager
 from django.utils.timezone import now
 from pgtrigger import ignore
 
+from api_core.config import CONFIG
+
 if TYPE_CHECKING:
     from datetime import datetime
 
@@ -65,7 +67,7 @@ class ApiUserManager(UserManager):
         password: str | None,
         **extra_fields: bool | datetime | str,
     ) -> ApiUser:
-        extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault("is_active", not CONFIG.REQUIRE_EMAIL_VERIFICATION)
 
         if extra_fields.get("is_superuser"):
             # superusers are provisioned out of band,

@@ -67,7 +67,7 @@ def settle_email(token: str) -> ApiUser:
         ApiUser.objects.filter(
             email_verified_at__isnull=True,
             pk=user.pk,
-        ).update(email_verified_at=now())
+        ).update(email_verified_at=now(), is_active=True)
 
         return user
 
@@ -112,7 +112,6 @@ async def resend_verification(email: str) -> None:
     user: ApiUser | None = await ApiUser.objects.filter(
         email__iexact=email,
         email_verified_at__isnull=True,
-        is_active=True,
     ).afirst()
 
     if user is None:

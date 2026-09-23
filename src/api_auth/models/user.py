@@ -80,6 +80,7 @@ class ApiUser(ApiSoftDeleteModel, AbstractBaseUser, PermissionsMixin):
 
     email_verified_at = DateTimeField(db_default=None, default=None, null=True)
 
+    is_active = BooleanField(db_default=False, default=False)
     is_staff = BooleanField(db_default=False, default=False)
     is_superuser = BooleanField(db_default=False, default=False)
 

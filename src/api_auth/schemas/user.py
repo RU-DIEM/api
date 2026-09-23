@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, PositiveInt, StringConstraints
+from pydantic import PositiveInt, StringConstraints
 
 from api_auth.enums import ApiUserTypes
 from api_auth.filtersets.user import ApiUserFilterSet
-from api_auth.models import ApiUser
 from api_core.schemas.factories import (
     build_filter_query,
     build_patch_schema,
@@ -64,22 +63,7 @@ class ApiUserBaseWrite(DTO):
     first_name: Annotated[str, StringConstraints(max_length=100)] = ""
     last_name: Annotated[str, StringConstraints(max_length=100)] = ""
     email: Email
-    username: Annotated[Username, AfterValidator(func=ApiUser.normalize_username)]
-
-
-########################################################################################
-
-
-class ApiUserBasePost(ApiUserBaseWrite):
-    password1: Password
-    password2: Password
-
-
-########################################################################################
-
-
-class ApiUserWrite(ApiUserBaseWrite):
-    is_active: bool = True
+    username: Username
 
 
 ########################################################################################
@@ -99,6 +83,14 @@ class ApiUserPermissionsWrite(DTO):
 ########################################################################################
 
 
+class ApiUserBasePost(ApiUserBaseWrite):
+    password1: Password
+    password2: Password
+
+
+########################################################################################
+
+
 class ApiClientPost(ApiUserBasePost):
     group: ApiClientGroups
 
@@ -112,7 +104,7 @@ class ApiStaffPost(ApiUserBasePost, ApiUserGroupsWrite, ApiUserPermissionsWrite)
 
 ########################################################################################
 
-ApiUserPut = build_put_schema(ApiUserWrite)
+ApiUserPut = build_put_schema(ApiUserBaseWrite)
 ApiUserPatch = build_patch_schema(ApiUserPut)
 
 ApiUserGroupsPut = build_put_schema(ApiUserGroupsWrite)

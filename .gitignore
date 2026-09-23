@@ -1,4 +1,4 @@
-.coverage
+.coverage*
 .env
 .request.json
 
@@ -13,7 +13,9 @@ __pycache__/
 .ruff_cache/
 .venv/
 .vscode/*
-!.vscode/extensions.json
 
 media
 site
+
+!.coveragerc.toml
+!.vscode/extensions.json
