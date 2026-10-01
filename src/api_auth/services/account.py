@@ -84,7 +84,11 @@ async def confirm_email(token: str) -> ApiUser:
 
 
 async def issue_email_verification(user: ApiUser) -> None:
-    if not CONFIG.REQUIRE_EMAIL_VERIFICATION or user.email_verified_at is not None:
+    if (
+        not CONFIG.REQUIRE_EMAIL_VERIFICATION
+        or not user.is_active
+        or user.email_verified_at is not None
+    ):
         return
 
     await issue_code(
@@ -112,6 +116,7 @@ async def resend_verification(email: str) -> None:
     user: ApiUser | None = await ApiUser.objects.filter(
         email__iexact=email,
         email_verified_at__isnull=True,
+        is_active=True,
     ).afirst()
 
     if user is None:

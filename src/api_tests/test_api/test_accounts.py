@@ -541,7 +541,6 @@ def test_user_update_replaces_every_field(
             "email": "renombrado@pruebas.example.com",
             "first_name": "Nombre",
             "last_name": "Apellido",
-            "is_active": True,
         },
     )
 
