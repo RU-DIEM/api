@@ -30,8 +30,8 @@
 .request.json
 .ruff.toml
 
+.railway/
 compose.yml
-railway.json
 
 flake*
 justfile
