@@ -5,6 +5,11 @@ x-api-build: &api-build
   dockerfile: dockerfile
 
 x-api-env: &api-env
+  BUNNY_PRIVATE_PULL_ZONE_HOST: ${BUNNY_PRIVATE_PULL_ZONE_HOST:-private.cdn.example.com}
+  BUNNY_PULL_ZONE_HOST: ${BUNNY_PULL_ZONE_HOST:-cdn.example.com}
+  BUNNY_STORAGE_API_KEY: ${BUNNY_STORAGE_API_KEY:?}
+  BUNNY_STORAGE_ZONE: ${BUNNY_STORAGE_ZONE:-api-media}
+  BUNNY_TOKEN_AUTH_KEY: ${BUNNY_TOKEN_AUTH_KEY:?}
   DATABASE_URL: postgresql://api:api@postgres:5432/api
   DEPLOY: ${DEPLOY:-False}
   JWT_SECRET_KEY: ${JWT_SECRET_KEY:?}

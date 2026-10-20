@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import hypothesis as ht
 import pytest
+import respx
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -31,6 +32,7 @@ from api_auth.services.jwt import EncodedJwtPair, build_jwt_pair
 from api_core.api import schema
 from api_core.controllers.base import BaseController
 from api_core.controllers.mixins import StrictThrottlingMixin
+from api_media.services.bunny import BUNNY_CLIENT
 
 ########################################################################################
 
@@ -107,6 +109,17 @@ def django_db_modify_db_settings(
     """
 
     settings.DATABASES["default"]["OPTIONS"]["pool"] = False
+
+
+@pytest.fixture(autouse=True)
+def bunny_storage() -> Generator[respx.MockRouter]:
+    with respx.mock(assert_all_called=False) as router:
+        storage = BUNNY_CLIENT.storage_url("")
+
+        router.put(name="put", url__startswith=storage).respond(201)
+        router.delete(name="delete", url__startswith=storage).respond(200)
+
+        yield router
 
 
 @pytest.fixture(autouse=True, scope="session")

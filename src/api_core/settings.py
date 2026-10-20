@@ -82,8 +82,8 @@ CSRF_TRUSTED_ORIGINS: Final[Sequence[str]] = (
     "http://127.0.0.1:3000",
 )
 
-FILE_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 2_621_440
-DATA_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 2_621_440
+FILE_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 5_242_880
+DATA_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 5_242_880
 DATA_UPLOAD_MAX_NUMBER_FIELDS: Final[int] = 100
 DATA_UPLOAD_MAX_NUMBER_FILES: Final[int] = 100
 
@@ -111,6 +111,7 @@ INSTALLED_APPS: Final[Sequence[str]] = (
     "pghistory",
     "api_core",
     "api_auth",
+    "api_media",
 )
 
 MIDDLEWARE: Final[Sequence[str]] = (

@@ -27,6 +27,7 @@ class ConflictErrorTypes(StrEnum):
 class ContentTooLargeErrorTypes(StrEnum):
     BODY = "El cuerpo de la solicitud excede el tamaño máximo permitido."
     FIELDS = "La solicitud contiene más campos de los permitidos."
+    FILE = "El archivo excede el tamaño máximo permitido."
     FILES = "La solicitud contiene más archivos de los permitidos."
 
 
