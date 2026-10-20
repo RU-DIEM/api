@@ -1,10 +1,7 @@
 [project]
   copyright = "&copy 2026, Joaquín Zúñiga"
 
-  extra_css = [
-    "stylesheets/theme.css",
-    "stylesheets/width.css",
-  ]
+  extra_css = ["stylesheets/theme.css"]
 
   repo_name = "jp-zuniga/backend-factory"
   repo_url  = "https://github.com/jp-zuniga/backend-factory"
