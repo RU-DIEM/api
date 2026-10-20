@@ -15,17 +15,19 @@
     "django-pgtransaction>=2.1.0",
     "django-pgtrigger>=4.17.0",
     "granian>=2.8.3",
+    "httpx>=0.28.1",
     "phonenumbers>=9.0.39",
+    "pillow>=13.0.0",
     "psycopg[binary,pool]>=3.3.5",
-    "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
+    "pydantic[email]>=2.13.5",
     "redis[hiredis]>=8.1.0",
   ]
 
   name            = "api"
   version         = "0.0.1"
   description     = "backend!"
-  readme          = { file = "README.md" }
+  readme          = "README.md"
   requires-python = ">=3.14.0"
   license-files   = ["LICENSE.md"]
 
@@ -41,6 +43,8 @@
     "pytest-cov>=7.1.0",
     "pytest-django>=4.14.0",
     "pytest-xdist>=3.8.0",
+    "railway-sdk>=0.7.0",
+    "respx>=0.23.1",
     "rstr>=3.2.2",
     "ruff>=0.16.8",
     "schemathesis>=4.27.2",
