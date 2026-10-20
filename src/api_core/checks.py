@@ -23,7 +23,11 @@ def check_api_model_triggers(
     errors = []
 
     for model in apps.get_models():
-        if issubclass(model, ApiModel) and not model._meta.abstract:
+        if (
+            issubclass(model, ApiModel)
+            and not model._meta.abstract
+            and not model._meta.proxy
+        ):
             base = ApiModel
 
             for specific in model.__mro__[1:]:
