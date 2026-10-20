@@ -23,6 +23,7 @@
 
 .coveragerc.toml
 .env.example
+.oxfmtrc.json
 .prek.toml
 .pytest.toml
 .request.json

@@ -24,7 +24,7 @@
         packages = [
           pkgs.docker-compose
           pkgs.jq
-          pkgs.prettier
+          pkgs.oxfmt
           unstable.just
           unstable.railway
           unstable.uv

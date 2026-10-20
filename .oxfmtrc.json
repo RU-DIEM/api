@@ -1,0 +1,4 @@
+{
+  "ignorePatterns": ["*.toml", "!.request.json"],
+  "printWidth": 80
+}

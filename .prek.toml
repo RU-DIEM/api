@@ -37,10 +37,6 @@
     id   = "no-commit-to-branch"
 
   [[repos.hooks]]
-    args = ["--autofix"]
-    id   = "pretty-format-json"
-
-  [[repos.hooks]]
     id = "trailing-whitespace"
 
 [[repos]]

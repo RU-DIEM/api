@@ -81,10 +81,10 @@ fix *args="":
     @just lint --fix {{ args }}
 
 [group("uv")]
-fmt *args="": (check-dep "prettier")
+fmt *args="": (check-dep "oxfmt")
     @just run-frozen ruff format {{ args }}
     @just run-frozen tombi format
-    prettier --write .
+    oxfmt
 
 [group("uv")]
 lint *args="":
@@ -322,8 +322,8 @@ request url method data token:
       exit 0
     fi
 
-    if command -v prettier > /dev/null 2>&1; then
-      prettier --ignore-path "" --write {{ request_json }} > /dev/null 2>&1
+    if command -v oxfmt > /dev/null 2>&1; then
+      oxfmt {{ request_json }} > /dev/null 2>&1
     fi
 
     if command -v zeditor > /dev/null 2>&1; then
