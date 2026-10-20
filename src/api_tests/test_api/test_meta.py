@@ -144,6 +144,15 @@ def test_openapi_requires_csrf_only_on_unsafe_cookie_requests(
     ]
 
 
+def test_openapi_requires_csrf_on_web_auth_endpoints(openapi_document: dict) -> None:
+    paths: dict = openapi_document["paths"]
+
+    for flow in ("login", "logout", "refresh", "two-factor", "verify"):
+        assert paths[f"/auth/web/{flow}/"]["post"]["security"] == [{"csrf": []}]
+
+    assert "security" not in paths["/auth/mobile/login/"]["post"]
+
+
 def test_openapi_document_covers_every_route(openapi_document: dict) -> None:
     paths: frozenset[str] = frozenset(openapi_document["paths"])
 

@@ -9,6 +9,7 @@ from dmr.security.base import NO_STORE_HEADERS as DMR_NO_STORE_HEADERS
 from dmr.serializer import BaseSerializer
 
 from api_auth.enums import TokenTypes
+from api_auth.security import CSRF_SCHEME_NAME
 from api_auth.services.csrf import csrf_headers, ensure_csrf
 from api_auth.services.jwt import EncodedJwtPair, build_jwt_pair
 from api_core.config import CONFIG
@@ -84,6 +85,10 @@ class MobileAuthController[Serializer: BaseSerializer](AuthController[Serializer
 class WebAuthController[Serializer: BaseSerializer](AuthController[Serializer]):
     namespace = "web"
     variant = "Web"
+
+    # these take no credentials an auth class could describe, yet every one
+    # of them checks CSRF; this is what tells clients to send the header
+    security = ({CSRF_SCHEME_NAME: []},)
 
 
 ########################################################################################
