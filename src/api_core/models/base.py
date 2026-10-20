@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Final, override
 from uuid import UUID, uuid7
 
 from django.db.models import (
@@ -35,6 +35,29 @@ if TYPE_CHECKING:
     from .event import ApiEvent
 
     from ty_extensions import Intersection
+
+########################################################################################
+
+TOUCH_UPDATEDAT: Final[str] = "trg_touch_updatedat"
+
+
+# postgres rejects `BEFORE` trigger conditions that reference generated columns,
+# so models with `GeneratedField`s must list them in `exclude_generated`
+def touch_updatedat_trigger(*, exclude_generated: Sequence[str] = ()) -> Trigger:
+    return Trigger(
+        condition=AnyChange(exclude=["updated_at", *exclude_generated]),
+        name=TOUCH_UPDATEDAT,
+        operation=Update,
+        when=Before,
+        func="NEW.updated_at = NOW(); RETURN NEW;",
+    )
+
+
+# drop the inherited touch trigger, to replace it with
+# `touch_updatedat_trigger(exclude_generated=...)`
+def remove_default_touch(triggers: Sequence[Trigger]) -> Sequence[Trigger]:
+    return tuple(t for t in triggers if t.name != TOUCH_UPDATEDAT)
+
 
 ########################################################################################
 
@@ -101,13 +124,7 @@ class ApiTimestampedModel(ApiModel):
 
         triggers: Sequence[Trigger] = (
             *ApiModel.Meta.triggers,
-            Trigger(
-                condition=AnyChange(),
-                name="trg_touch_updatedat",
-                operation=Update,
-                when=Before,
-                func="NEW.updated_at = NOW(); RETURN NEW;",
-            ),
+            touch_updatedat_trigger(),
         )
 
 
