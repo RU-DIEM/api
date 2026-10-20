@@ -79,9 +79,9 @@ class WebVerifyController(WebAuthController[CustomPydanticFastSerializer]):
     Report which half of the cookie session is still live.
     """
 
-    @modify(headers=NO_STORE_HEADERS, status_code=HTTPStatus.OK)
     @sensitive_variables()
     @endpoint_decorator(sensitive_post_parameters())
+    @modify(headers=NO_STORE_HEADERS, status_code=HTTPStatus.OK)
     async def post(self, parsed_cookies: Cookies[SessionCookies]) -> WebVerifyResponse:
         ensure_csrf(self.request)
 

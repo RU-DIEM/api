@@ -10,7 +10,7 @@ from api_exceptions.enums import RequestScopes
 from api_exceptions.errors import ConflictError, NotFoundError
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Generator, Sequence
     from typing import ClassVar
 
     from django.db.models import QuerySet
@@ -74,7 +74,7 @@ class ModelOperation[Get: DTO](ABC):
 
     @classmethod
     @contextmanager
-    def exc_handler(cls, lookup: dict | None = None) -> Iterator[None]:
+    def exc_handler(cls, lookup: dict | None = None) -> Generator[None]:
         try:
             yield
         except IntegrityError as i:

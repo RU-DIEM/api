@@ -40,7 +40,7 @@ type OptionalSecret = Annotated[
 
 
 class ApiConfig(BaseSettings, PermissiveDTO):
-    model_config = SettingsConfigDict(
+    model_config = SettingsConfigDict(  # ty: ignore[invalid-mutable-override]
         enable_decoding=False,
         env_file=(ROOT / ".env"),
         env_file_encoding="utf-8",

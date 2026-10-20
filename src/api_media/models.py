@@ -46,7 +46,7 @@ class ApiMedia(ApiProtectedModel):
 
     uploaded_by = ForeignKey(on_delete=RESTRICT, related_name="+", to=ApiUser)
 
-    class Meta(ApiProtectedModel.Meta):
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(size__gt=0),

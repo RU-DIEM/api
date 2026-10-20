@@ -111,7 +111,7 @@ class ApiTimestampedModel(ApiModel):
     created_at = DateTimeField(db_default=Now(), default=now)
     updated_at = DateTimeField(db_default=Now(), default=now)
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         indexes: Sequence[Index] = (
@@ -142,7 +142,7 @@ class ApiAppendOnlyModel(ApiTimestampedModel):
 
     updated_at = None
 
-    class Meta(ApiTimestampedModel.Meta):
+    class Meta(ApiTimestampedModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         indexes: Sequence[Index] = (
@@ -167,7 +167,7 @@ class ApiProtectedModel(ApiTimestampedModel):
     are expected to keep referring to.
     """
 
-    class Meta(ApiTimestampedModel.Meta):
+    class Meta(ApiTimestampedModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         triggers: Sequence[Trigger] = (
@@ -190,7 +190,7 @@ class ApiSoftDeleteModel(ApiTimestampedModel):
 
     is_active = BooleanField(db_default=True, default=True)
 
-    class Meta(ApiTimestampedModel.Meta):
+    class Meta(ApiTimestampedModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         indexes: Sequence[Index] = (

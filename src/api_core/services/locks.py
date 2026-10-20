@@ -11,7 +11,7 @@ from api_exceptions.enums import ConflictErrorTypes, RequestScopes
 from api_exceptions.errors import ConflictError, NotFoundError
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator
     from typing import Final
 
     from api_utils.types import DatabaseModel
@@ -26,7 +26,7 @@ RETRIES: Final[int] = 3
 
 
 @contextmanager
-def guarded_lock() -> Iterator[None]:
+def guarded_lock() -> Generator[None]:
     try:
         with timeout(LOCK_TIMEOUT):
             yield

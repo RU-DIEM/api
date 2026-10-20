@@ -55,9 +55,9 @@ class MobileTwoFactorController(MobileAuthController[CustomPydanticFastSerialize
     Trade a challenge token and a second factor code for a token pair.
     """
 
-    @modify(headers=NO_STORE_HEADERS, status_code=HTTPStatus.OK)
     @sensitive_variables()
     @endpoint_decorator(sensitive_post_parameters())
+    @modify(headers=NO_STORE_HEADERS, status_code=HTTPStatus.OK)
     async def post(self, parsed_body: Body[MobileTwoFactorPost]) -> MobileLoginResponse:
         user: ApiUser = await resolve_challenge(
             parsed_body.challenge,
@@ -155,11 +155,11 @@ class TwoFactorController(PrivateAuthController[CustomPydanticFastSerializer]):
 
 
 class TwoFactorSetupController(PrivateAuthController[CustomPydanticFastSerializer]):
+    @sensitive_variables()
     @modify(
         headers=NO_STORE_HEADERS,
         status_code=HTTPStatus.CREATED,
     )
-    @sensitive_variables()
     async def post(self) -> TwoFactorSetupResponse:
         enrollment: TotpEnrollment = await start_enrollment(self.request.user)
 
@@ -170,12 +170,12 @@ class TwoFactorSetupController(PrivateAuthController[CustomPydanticFastSerialize
 
 
 class TwoFactorConfirmController(PrivateAuthController[CustomPydanticFastSerializer]):
+    @sensitive_variables()
+    @endpoint_decorator(sensitive_post_parameters())
     @modify(
         headers=NO_STORE_HEADERS,
         status_code=HTTPStatus.CREATED,
     )
-    @sensitive_variables()
-    @endpoint_decorator(sensitive_post_parameters())
     async def post(
         self,
         parsed_body: Body[TwoFactorCodePost],
@@ -189,12 +189,12 @@ class TwoFactorConfirmController(PrivateAuthController[CustomPydanticFastSeriali
 
 
 class TwoFactorRecoveryController(PrivateAuthController[CustomPydanticFastSerializer]):
+    @sensitive_variables()
+    @endpoint_decorator(sensitive_post_parameters())
     @modify(
         headers=NO_STORE_HEADERS,
         status_code=HTTPStatus.CREATED,
     )
-    @sensitive_variables()
-    @endpoint_decorator(sensitive_post_parameters())
     async def post(
         self,
         parsed_body: Body[TwoFactorCodePost],
@@ -210,9 +210,9 @@ class TwoFactorRecoveryController(PrivateAuthController[CustomPydanticFastSerial
 
 
 class TwoFactorDisableController(PrivateAuthController[CustomPydanticFastSerializer]):
-    @modify(status_code=HTTPStatus.NO_CONTENT)
     @sensitive_variables()
     @endpoint_decorator(sensitive_post_parameters())
+    @modify(status_code=HTTPStatus.NO_CONTENT)
     async def post(self, parsed_body: Body[TwoFactorDisablePost]) -> None:
         await disable_two_factor(
             code=parsed_body.code,

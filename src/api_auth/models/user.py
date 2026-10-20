@@ -104,7 +104,7 @@ class ApiUser(ApiSoftDeleteModel, AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD: Final[str] = "email"
     USERNAME_FIELD: Final[str] = "username"
 
-    class Meta(ApiSoftDeleteModel.Meta):
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 Lower("email"),

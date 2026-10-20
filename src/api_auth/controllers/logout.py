@@ -35,12 +35,12 @@ class MobileLogoutController(MobileAuthController[CustomPydanticFastSerializer])
     is enough to revoke both.
     """
 
+    @sensitive_variables()
+    @endpoint_decorator(sensitive_post_parameters())
     @modify(
         headers=NO_STORE_HEADERS,
         status_code=HTTPStatus.NO_CONTENT,
     )
-    @sensitive_variables()
-    @endpoint_decorator(sensitive_post_parameters())
     async def post(self, parsed_body: Body[MobileLogoutPost]) -> None:  # ruff: ignore[no-self-use]
         await close_session(
             access=parsed_body.access,

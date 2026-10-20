@@ -46,9 +46,9 @@ class BadRequestError(TypedApiError[BadRequestErrorTypes]):
         "string_too_long": "Este campo debe tener un máximo de {} caracter(es).",
     }
 
-    default_detail: Final[str] = "La solicitud contiene datos inválidos."
+    default_detail: str = "La solicitud contiene datos inválidos."
 
-    default_http_status: Final[HTTPStatus] = HTTPStatus.BAD_REQUEST
+    default_http_status: HTTPStatus = HTTPStatus.BAD_REQUEST
 
     @classmethod
     def from_validation_error(cls, exc: GenericValidationError) -> Self:

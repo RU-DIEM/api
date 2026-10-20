@@ -13,8 +13,8 @@ from .base import AuthController
 
 
 class EmailConfirmController(AuthController[CustomPydanticFastSerializer]):
-    @modify(status_code=HTTPStatus.NO_CONTENT)
     @sensitive_variables()
+    @modify(status_code=HTTPStatus.NO_CONTENT)
     async def post(self, parsed_body: Body[EmailConfirmPost]) -> None:  # ruff: ignore[no-self-use]
         await confirm_email(parsed_body.token)
 

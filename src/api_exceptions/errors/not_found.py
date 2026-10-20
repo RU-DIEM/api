@@ -1,18 +1,15 @@
 from http import HTTPStatus
-from typing import TYPE_CHECKING, override
+from typing import override
 
 from .base import ApiError
-
-if TYPE_CHECKING:
-    from typing import Final
 
 ########################################################################################
 
 
 class NotFoundError(ApiError):
-    default_detail: Final[str] = "El recurso solicitado no se encontró."
+    default_detail: str = "El recurso solicitado no se encontró."
 
-    default_http_status: Final[HTTPStatus] = HTTPStatus.NOT_FOUND
+    default_http_status: HTTPStatus = HTTPStatus.NOT_FOUND
 
     @override
     def __init__(

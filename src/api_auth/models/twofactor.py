@@ -51,7 +51,7 @@ class ApiUserTotpDevice(ApiModel):
     failures = PositiveSmallIntegerField(db_default=0, default=0)
     last_step = PositiveBigIntegerField(db_default=0, default=0)
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiModel.Meta):  # ty: ignore[invalid-attribute-override]
         indexes: Sequence[Index] = (
             Index(fields=["confirmed_at"], name="idx_%(class)s_confirmedat"),
             Index(fields=["locked_until"], name="idx_%(class)s_lockeduntil"),
@@ -100,7 +100,7 @@ class ApiUserRecoveryCode(ApiModel):
     created_at = DateTimeField(db_default=Now(), default=now)
     used_at = DateTimeField(db_default=None, default=None, null=True)
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(fields=["code"], name="unq_%(class)s_code"),
         )

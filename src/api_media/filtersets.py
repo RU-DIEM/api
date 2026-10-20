@@ -20,5 +20,5 @@ class ApiMediaFilterSet(ApiFilterSet):
 
     order = OrderingFilter(fields=("created_at", "size"))
 
-    class Meta(ApiFilterSet.Meta):
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = ApiMedia

@@ -217,5 +217,5 @@ def test_build_scoped_path_uses_the_foreign_keys_target_type() -> None:
     int_path = build_scoped_path(ApiUserGroups, "group")
 
     assert uuid_path.model_fields["api_user_id"].annotation is UUID
-    assert int_path.model_fields["group_id"].annotation.__name__ == "int"
+    assert int_path.model_fields["group_id"].annotation is int
     assert "id" in uuid_path.model_fields

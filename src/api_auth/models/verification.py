@@ -57,7 +57,7 @@ class VerificationCode(ApiModel):
     consumed_at = DateTimeField(db_default=None, default=None, null=True)
     invalidated_at = DateTimeField(db_default=None, default=None, null=True)
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(purpose__in=VerificationPurposes.values),

@@ -33,5 +33,5 @@ class ApiUserFilterSet(ApiSoftDeleteFilterSet):
 
     order = OrderingFilter(fields=("username", "email", "created_at"))
 
-    class Meta(ApiSoftDeleteFilterSet.Meta):
+    class Meta(ApiSoftDeleteFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = ApiUser

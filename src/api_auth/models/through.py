@@ -28,7 +28,7 @@ class ApiUserGroups(ApiModel):
         to=Group,
     )
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 fields=["api_user", "group"],
@@ -54,7 +54,7 @@ class ApiUserPermissions(ApiModel):
         to=Permission,
     )
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 fields=["api_user", "permission"],

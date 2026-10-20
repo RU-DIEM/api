@@ -30,5 +30,5 @@ class ApiEvent(Event):
 
     _meta: ClassVar[Options]
 
-    class Meta(Event.Meta):
+    class Meta(Event.Meta):  # ty: ignore[invalid-attribute-override]
         abstract = True

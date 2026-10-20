@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import TooManyFieldsSent, TooManyFilesSent
 from dmr.exceptions import RequestSerializationError
@@ -16,9 +16,9 @@ if TYPE_CHECKING:
 
 
 class ContentTooLargeError(TypedApiError[ContentTooLargeErrorTypes]):
-    default_detail: Final[str] = "La solicitud excede los límites permitidos."
+    default_detail: str = "La solicitud excede los límites permitidos."
 
-    default_http_status: Final[HTTPStatus] = HTTPStatus.CONTENT_TOO_LARGE
+    default_http_status: HTTPStatus = HTTPStatus.CONTENT_TOO_LARGE
 
     @classmethod
     def from_upload_error(cls, exc: UploadLimitError) -> Self:

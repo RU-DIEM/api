@@ -82,4 +82,4 @@ def test_api_surface_never_crashes(
             [from_response(case.method, response)],
         )
 
-    case.validate_response(response, checks=[not_a_server_error])  # ty: ignore[invalid-argument-type]
+    case.validate_response(response, checks=[not_a_server_error])
