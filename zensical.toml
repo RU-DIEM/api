@@ -24,6 +24,7 @@
         "api/email-confirmation.md",
         "api/two-factor.md",
         "api/users.md",
+        "api/media.md",
         "api/errors.md",
       ],
     },
