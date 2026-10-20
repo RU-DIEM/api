@@ -7,8 +7,7 @@ __pycache__/
 .cache/
 .direnv/
 .hypothesis/
-.idea
-.pgdata/
+.idea/
 .pytest_cache/
 .ruff_cache/
 .venv/
