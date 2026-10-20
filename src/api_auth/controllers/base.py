@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import ClassVar, Literal
 
 from django.middleware.csrf import rotate_token
-from dmr import CookieSpec, HeaderSpec, NewCookie, ResponseSpec
+from dmr import CookieSpec, HeaderSpec, NewCookie
 from dmr.headers import NewHeader
 from dmr.security.base import NO_STORE_HEADERS as DMR_NO_STORE_HEADERS
 from dmr.serializer import BaseSerializer
@@ -18,15 +18,11 @@ from api_utils.types import UsableHttpRequest
 
 ########################################################################################
 
-# `dmr` picks which headers keep credentials out of every cache, and what
-# they are set to; only the wording a client reads in the schema is ours
 NO_STORE_HEADERS: dict[str, NewHeader] = {
     name: replace(header, description=None)
     for name, header in DMR_NO_STORE_HEADERS.items()
 }
 
-# `@validate` describes these headers and we set them by hand; both halves
-# are built from the same source, like `dmr` does it, so they cannot drift
 NO_STORE_SPEC: dict[str, HeaderSpec] = {
     name: header.to_spec() for name, header in NO_STORE_HEADERS.items()
 }
@@ -78,16 +74,16 @@ class PrivateAuthController[Serializer: BaseSerializer](
 
 
 class MobileAuthController[Serializer: BaseSerializer](AuthController[Serializer]):
-    namespace: ClassVar[str] = "mobile"
-    variant: ClassVar[str] = "Mobile"
+    namespace = "mobile"
+    variant = "Mobile"
 
 
 ########################################################################################
 
 
 class WebAuthController[Serializer: BaseSerializer](AuthController[Serializer]):
-    namespace: ClassVar[str] = "web"
-    variant: ClassVar[str] = "Web"
+    namespace = "web"
+    variant = "Web"
 
 
 ########################################################################################
@@ -148,8 +144,6 @@ class CookieTokensMixin(JwtSettingsMixin):
     jwt_cookie_samesite: ClassVar[Literal["lax", "strict", "none"]] = (
         CONFIG.cookie_samesite_policy
     )
-
-    jwt_ensure_csrf: ClassVar[bool] = True
 
     @classmethod
     def access_cookie_spec(cls) -> CookieSpec:
@@ -227,21 +221,6 @@ class CookieTokensMixin(JwtSettingsMixin):
         }
 
     @classmethod
-    def csrf_response_specs(cls) -> tuple[ResponseSpec, ...]:
-        """
-        Drop `dmr`'s own description of a failed CSRF check.
-
-        It carries the plain error model, while `Settings.responses`
-        already describes `403` for every endpoint this API serves.
-
-        Returns:
-            Nothing at all, on purpose.
-
-        """
-
-        return ()
-
-    @classmethod
     def response_headers_spec(cls) -> dict[str, HeaderSpec]:
         return {**NO_STORE_SPEC, **CSRF_HEADER_SPEC}
 
@@ -256,11 +235,12 @@ class CookieTokensMixin(JwtSettingsMixin):
         any other site could act on a session that is not its own.
         """
 
-        if self.jwt_ensure_csrf:
-            ensure_csrf(self.request)
+        ensure_csrf(self.request)
 
     def rotate_csrf_token(self) -> None:
-        """Hand a freshly authed client a CSRF token of its own."""
+        """
+        Hand a freshly authed client a CSRF token of its own.
+        """
 
         rotate_token(self.request)
 

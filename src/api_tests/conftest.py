@@ -17,7 +17,6 @@ from django.db import connection
 from django.test.utils import override_settings
 from django.utils.timezone import now
 from dmr.openapi.dump import json_dumps
-from dmr.settings import Settings as DmrSettings
 from dmr.test import DMRClient
 from dmr.throttling import AsyncThrottle
 from pgtrigger.registry import registered
@@ -30,8 +29,7 @@ from api_auth.enums import ApiUserTypes, TokenTypes
 from api_auth.models import ApiUser
 from api_auth.services.jwt import EncodedJwtPair, build_jwt_pair
 from api_core.api import schema
-from api_core.controllers.base import BaseController
-from api_core.controllers.mixins import StrictThrottlingMixin
+from api_core.controllers.throttles import DEFAULT_THROTTLES, STRICT_THROTTLES
 from api_media.services.bunny import BUNNY_CLIENT
 
 ########################################################################################
@@ -57,8 +55,8 @@ TRUNCATE_TRIGGER: Final[str] = "trg_protect_truncate"
 # so overriding `settings.CACHES` never reaches them: every test would share
 # one live redis. these are the instances the whole API throttles through
 THROTTLES: Final[Sequence[AsyncThrottle]] = (
-    *BaseController.throttling,
-    *StrictThrottlingMixin.throttling,
+    *DEFAULT_THROTTLES,
+    *STRICT_THROTTLES,
 )
 
 ########################################################################################
@@ -164,7 +162,6 @@ def allow_test_teardown(
 @pytest.fixture(autouse=True)
 def disable_throttling(settings: PytestDjangoSettings) -> Generator[None]:
     settings.CACHES = DUMMY_CACHE
-    settings.DMR_SETTINGS[DmrSettings.throttling_allow_unsafe_cache] = None
 
     swap_throttle_cache(DummyCache(host="throttling", params={}))
 

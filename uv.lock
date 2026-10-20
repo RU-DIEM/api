@@ -79,7 +79,7 @@ requires-dist = [
     { name = "django-cors-headers", specifier = ">=4.9.0" },
     { name = "django-filter", specifier = ">=26.1" },
     { name = "django-health-check", specifier = ">=4.5.1" },
-    { name = "django-modern-rest", extras = ["jwt", "msgspec", "openapi", "pydantic"], specifier = ">=0.15.0" },
+    { name = "django-modern-rest", extras = ["jwt", "msgspec", "openapi", "pydantic"], specifier = ">=0.16.0" },
     { name = "django-pgbulk", specifier = ">=3.3.0" },
     { name = "django-pghistory", specifier = ">=3.9.2" },
     { name = "django-pglock", specifier = ">=1.8.0" },

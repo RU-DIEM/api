@@ -7,15 +7,13 @@ from django.http import HttpResponse
 from dmr import Controller
 from dmr.negotiation import request_renderer
 from dmr.response import build_response
-from dmr.security import AsyncAuth
-from dmr.throttling import AsyncThrottle, Rate
 
 from api_auth.services.permissions import DEFAULT_PERMISSIONS
 from api_core.services.relations import collect_fk_attnames
 from api_exceptions.schemas import ApiErrorResponse
 
 from .providers import HandleNotAllowedProvider, QuerySetProvider
-from .throttles import build_throttle
+from .throttles import STRICT_THROTTLES
 
 if TYPE_CHECKING:
     from .models import ModelController
@@ -102,14 +100,14 @@ class ParentScopedMixin(QuerySetProvider):
 
 
 class PublicControllerMixin:
-    auth: ClassVar[Sequence[AsyncAuth] | None] = None
+    auth = None
 
 
 ########################################################################################
 
 
 class StrictThrottlingMixin:
-    throttling: ClassVar[Sequence[AsyncThrottle]] = (build_throttle(10, Rate.minute),)
+    throttling = STRICT_THROTTLES
 
 
 ########################################################################################

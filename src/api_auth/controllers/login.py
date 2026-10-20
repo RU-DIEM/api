@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from http import HTTPStatus
 from typing import ClassVar, Final, override
 
@@ -65,8 +64,6 @@ class MobileLoginController(
     with a challenge instead whenever the account has a second factor,
     which is why the endpoint is described by hand.
     """
-
-    responses: ClassVar[Sequence[ResponseSpec]] = ()
 
     @classmethod
     def validate_spec(cls) -> ValidateAnyCallable:
@@ -155,9 +152,6 @@ class WebLoginController(
     """
 
     response_status_code: ClassVar[HTTPStatus] = HTTPStatus.OK
-
-    # see `MobileLoginController.responses`
-    responses: ClassVar[Sequence[ResponseSpec]] = ()
 
     @classmethod
     @override

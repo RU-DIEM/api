@@ -1,6 +1,5 @@
-from collections.abc import Sequence
 from http import HTTPStatus
-from typing import ClassVar, override
+from typing import override
 
 from django.http import HttpResponse
 from django.views.decorators.debug import (
@@ -64,9 +63,6 @@ class WebLogoutController(
     here the tokens are revoked as well, so one that leaked before the
     logout cannot outlive it.
     """
-
-    # see `MobileLoginController.responses`
-    responses: ClassVar[Sequence[ResponseSpec]] = ()
 
     @classmethod
     @override

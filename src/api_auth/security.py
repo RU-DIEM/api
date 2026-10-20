@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Final, override
 
+from django.views.decorators.debug import sensitive_variables
 from dmr.exceptions import NotAuthenticatedError
 from dmr.openapi.objects import SecurityScheme
 from dmr.security.jwt.auth import CookieJWTAsyncAuth, HeaderJWTAsyncAuth
@@ -18,12 +19,23 @@ if TYPE_CHECKING:
     from django.contrib.auth.base_user import AbstractBaseUser
     from dmr import Controller
     from dmr.endpoint import Endpoint
-    from dmr.openapi.objects import Reference, SecurityRequirement
+    from dmr.metadata import EndpointMetadata
+    from dmr.openapi.objects import Reference
     from dmr.security.jwt import JWToken
 
 ########################################################################################
 
-CSRF_SCHEME_NAME: str = "csrf"
+CSRF_SCHEME_NAME: Final[str] = "csrf"
+
+# the cookie carrying the token is `httponly`,
+# so what a client actually has to send is the header;
+# declared once for the whole document,
+# since both the cookie auth and the web auth controllers require it
+CSRF_SECURITY_SCHEME: Final[SecurityScheme] = SecurityScheme(
+    name=CONFIG.csrf_header,
+    security_scheme_in="header",
+    type="apiKey",
+)
 
 ########################################################################################
 
@@ -41,6 +53,7 @@ class JwtRbacAsyncAuth(BaseJWTAsyncAuth):
     __slots__ = ()
 
     @override
+    @sensitive_variables()
     async def __call__(
         self,
         endpoint: Endpoint,
@@ -59,6 +72,7 @@ class JwtRbacAsyncAuth(BaseJWTAsyncAuth):
         return authed
 
     @override
+    @sensitive_variables()
     async def check_auth(
         self,
         user: AbstractBaseUser,
@@ -83,31 +97,26 @@ class JwtCookieAsyncAuth(JwtRbacAsyncAuth, CookieJWTAsyncAuth):
 
     __slots__ = ()
 
-    @property
-    @override
-    def security_requirement(self) -> SecurityRequirement:
-        return {CSRF_SCHEME_NAME: [], **super().security_requirement}
-
-    @property
-    @override
-    def security_schemes(self) -> dict[str, SecurityScheme | Reference]:
-        return {
-            CSRF_SCHEME_NAME: SecurityScheme(
-                name=CONFIG.csrf_header,
-                security_scheme_in="header",
-                type="apiKey",
-            ),
-            self.security_scheme_name: SecurityScheme(
-                name=self.cookie_name,
-                security_scheme_in="cookie",
-                type="apiKey",
-            ),
-        }
-
     @override
     def _ensure_csrf(self, controller: Controller) -> None:
         if self.get_token_from_request(controller.request):
             ensure_csrf(controller.request)
+
+    @override
+    def auth_security_scheme(self) -> SecurityScheme:
+        return SecurityScheme(
+            name=self.cookie_name,
+            security_scheme_in="cookie",
+            type="apiKey",
+        )
+
+    @override
+    def security_schemes(
+        self,
+        metadata: EndpointMetadata,
+        controller_cls: type[Controller],
+    ) -> dict[str, SecurityScheme | Reference]:
+        return {self.security_scheme_name: self.auth_security_scheme()}
 
 
 ########################################################################################
@@ -120,9 +129,12 @@ class JwtHeaderAsyncAuth(JwtRbacAsyncAuth, HeaderJWTAsyncAuth):
 
     __slots__ = ()
 
-    @property
     @override
-    def security_schemes(self) -> dict[str, SecurityScheme | Reference]:
+    def security_schemes(
+        self,
+        metadata: EndpointMetadata,
+        controller_cls: type[Controller],
+    ) -> dict[str, SecurityScheme | Reference]:
         return {
             self.security_scheme_name: SecurityScheme(
                 bearer_format="JWT",

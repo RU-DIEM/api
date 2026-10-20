@@ -1,12 +1,11 @@
-from collections.abc import Sequence
 from http import HTTPStatus
-from typing import ClassVar, override
+from typing import override
 
 from django.views.decorators.debug import (
     sensitive_post_parameters,
     sensitive_variables,
 )
-from dmr import Body, Cookies, ResponseSpec, modify
+from dmr import Body, Cookies, modify
 from dmr.decorators import endpoint_decorator
 from dmr.endpoint import ModifyAnyCallable
 from dmr.security.jwt.views import VerifyTokenAsyncController
@@ -42,8 +41,6 @@ class MobileVerifyController(
     holding, so a refresh or a challenge token can be checked as well.
     A revoked session is refused even while its tokens are unexpired.
     """
-
-    responses: ClassVar[Sequence[ResponseSpec]] = ()
 
     @classmethod
     @override

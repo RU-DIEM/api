@@ -1,8 +1,7 @@
-from collections.abc import Sequence
 from typing import ClassVar, override
 
 from dmr import Body, FileMetadata
-from dmr.parsers import MultiPartParser, Parser
+from dmr.parsers import MultiPartParser
 
 from api_core.controllers.models import (
     ModelListController,
@@ -41,7 +40,8 @@ class ApiMediaListController(
 ):
     create_operation: ClassVar[type[CreateOperation]] = MediaUploadOperation
     mapper: ModelMapper[ApiMediaGet] = staticmethod(media_mapper)  # ty: ignore[invalid-assignment]
-    parsers: ClassVar[Sequence[Parser]] = (MultiPartParser(),)
+
+    parsers = (MultiPartParser(),)
 
     @override
     async def post(  # ty: ignore[invalid-method-override]

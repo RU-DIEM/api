@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final, override
 
@@ -50,3 +51,15 @@ class ForwardedAddr(BaseThrottleCacheKey):
             return forwarded.rsplit(sep=",", maxsplit=1)[-1].strip()
 
         return request.META.get("REMOTE_ADDR")
+
+
+########################################################################################
+
+# what every controller is throttled with, and what the auth flow tightens it to
+DEFAULT_THROTTLES: Final[Sequence[AsyncThrottle]] = (
+    build_throttle(10, Rate.second),
+    build_throttle(100, Rate.minute),
+    build_throttle(1000, Rate.hour),
+)
+
+STRICT_THROTTLES: Final[Sequence[AsyncThrottle]] = (build_throttle(10, Rate.minute),)

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import create_model
+from pydantic import Field, create_model
 
 from api_core.schemas.get import DTO
 
@@ -15,7 +15,7 @@ def build_patch_schema[Put: type[DTO]](dto: Put) -> Put:
                 if not field.metadata
                 else Annotated[field.annotation, *field.metadata]
             ),
-            None,
+            Field(default_factory=(lambda: None)),
         )
         for name, field in dto.model_fields.items()
     }

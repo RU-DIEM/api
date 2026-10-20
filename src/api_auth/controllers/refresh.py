@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from http import HTTPStatus
 from typing import ClassVar, override
 
@@ -73,9 +72,6 @@ class MobileRefreshController(
 
     response_status_code: ClassVar[HTTPStatus] = HTTPStatus.OK
 
-    # see `MobileLoginController.responses`
-    responses: ClassVar[Sequence[ResponseSpec]] = ()
-
     @classmethod
     @override
     def modify_spec(cls) -> ModifyAnyCallable:
@@ -122,9 +118,6 @@ class WebRefreshController(
     The browser sends the refresh cookie on its own, which is exactly why
     CSRF is enforced here.
     """
-
-    # see `MobileLoginController.responses`
-    responses: ClassVar[Sequence[ResponseSpec]] = ()
 
     @classmethod
     @override

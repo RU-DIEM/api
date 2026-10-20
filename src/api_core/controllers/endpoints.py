@@ -1,10 +1,14 @@
 from collections.abc import Sequence
+from dataclasses import dataclass
 from http import HTTPMethod
-from typing import Final, override
+from typing import Final, cast, override
 
+from dmr import ResponseSpec
 from dmr.endpoint import Endpoint
-from dmr.openapi import OpenAPIContext
-from dmr.serializer import BaseSerializer
+from dmr.types import EMPTY
+from dmr.validation import MetadataMerger
+
+from typing_extensions import Sentinel
 
 ########################################################################################
 
@@ -27,63 +31,58 @@ INSTANCE_ACTIONS: Final[dict[str, str]] = {
 ########################################################################################
 
 
+@dataclass(slots=True, frozen=True, kw_only=True)
+class ApiMetadataMerger(MetadataMerger):
+    @override
+    def first_defined[T](self, *layers: T | Sentinel | None) -> T | Sentinel | None:
+        if self.field_name != "responses":
+            return super().first_defined(*layers)
+
+        defined: list[Sequence[ResponseSpec]] = [
+            cast("Sequence[ResponseSpec]", layer)
+            for layer in reversed(layers)
+            if layer is not None and not isinstance(layer, Sentinel)
+        ]
+
+        if not defined:
+            return EMPTY
+
+        return cast("T", [spec for layer in defined for spec in layer])
+
+
+########################################################################################
+
+
 class PathOperationIdEndpoint(Endpoint):
     __slots__ = ()
 
-    def is_instance_path(self, path: str) -> bool:  # ruff: ignore[no-self-use]
-        parts: Sequence[str] = tuple(part for part in path.split(sep="/") if part)
+    metadata_merger_cls = ApiMetadataMerger
 
-        return bool(parts) and parts[-1].startswith("{")
+    @classmethod
+    def get_action(cls, method: str, path: str) -> str:  # ruff: ignore[unused-class-method-argument]
+        return method.lower()
 
-    def get_action(self, path: str) -> str:  # ruff: ignore[unused-method-argument]
-        return self.metadata.method.lower()
-
-    def get_segments(self, path: str) -> Sequence[str]:  # ruff: ignore[no-self-use]
+    @classmethod
+    def get_segments(cls, path: str) -> Sequence[str]:
         return tuple(
             part for part in path.split(sep="/") if part and not part.startswith("{")
         )
 
-    @override
-    def get_operation_id(
-        self,
-        path: str,
-        controller_name: str,
-        serializer: type[BaseSerializer],
-        context: OpenAPIContext,
-    ) -> str:
-        if self.metadata.operation_id is not None:
-            return context.generators.operation_id(
-                path,
-                controller_name,
-                self.metadata,
-                serializer,
-            )
+    @classmethod
+    def is_instance_path(cls, path: str) -> bool:
+        parts: Sequence[str] = tuple(part for part in path.split(sep="/") if part)
 
-        operation_id: str = "-".join((
-            *self.get_segments(path),
-            self.get_action(path),
-        ))
-
-        try:
-            context.registries.operation_id.register(operation_id)
-        except ValueError as v:
-            raise ValueError(
-                f"{controller_name} genera el operation id duplicado "
-                f"'{operation_id}' para {self.metadata.method} {path}.",
-            ) from v
-
-        return operation_id
+        return bool(parts) and parts[-1].startswith("{")
 
 
 class ModelOperationIdEndpoint(PathOperationIdEndpoint):
     __slots__ = ()
 
+    @classmethod
     @override
-    def get_action(self, path: str) -> str:
-        method: str = self.metadata.method.upper()
-
+    def get_action(cls, method: str, path: str) -> str:
         actions: dict[str, str] = (
-            INSTANCE_ACTIONS if self.is_instance_path(path) else COLLECTION_ACTIONS
+            INSTANCE_ACTIONS if cls.is_instance_path(path) else COLLECTION_ACTIONS
         )
 
-        return actions.get(method, method.lower())
+        return actions.get(method.upper(), method.lower())

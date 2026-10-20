@@ -7,6 +7,7 @@ from dmr.test import DMRAsyncRequestFactory, DMRClient, assert_async_throttling
 from dmr.throttling import Rate
 
 from api_auth.controllers.base import AuthController
+from api_core.api import schema
 from api_core.controllers.root import RootController, build_root_response
 from api_exceptions.errors import (
     NotFoundError,
@@ -112,6 +113,35 @@ def test_openapi_declares_security_schemes(openapi_document: dict) -> None:
     assert "jwtHeader" in schemes
     assert "jwtCookie" in schemes
     assert "csrf" in schemes
+
+
+def test_openapi_document_is_valid() -> None:
+    schema.convert()
+
+
+def test_openapi_validated_endpoints_keep_error_responses(
+    openapi_document: dict,
+) -> None:
+    responses: dict = openapi_document["paths"]["/auth/web/login/"]["post"]["responses"]
+
+    assert str(HTTPStatus.OK.value) in responses
+    assert str(HTTPStatus.UNAUTHORIZED.value) in responses
+    assert str(HTTPStatus.TOO_MANY_REQUESTS.value) in responses
+
+
+def test_openapi_requires_csrf_only_on_unsafe_cookie_requests(
+    openapi_document: dict,
+) -> None:
+    paths: dict = openapi_document["paths"]
+
+    assert paths["/auth/user/"]["get"]["security"] == [
+        {"jwtCookie": []},
+        {"jwtHeader": []},
+    ]
+    assert paths["/auth/user/"]["post"]["security"] == [
+        {"csrf": [], "jwtCookie": []},
+        {"jwtHeader": []},
+    ]
 
 
 def test_openapi_document_covers_every_route(openapi_document: dict) -> None:
