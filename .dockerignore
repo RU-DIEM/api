@@ -21,6 +21,7 @@
 .envrc
 .gitignore
 
+.compose-ci.yml
 .coveragerc.toml
 .env.example
 .oxfmtrc.json
@@ -29,7 +30,6 @@
 .request.json
 .ruff.toml
 
-compose.ci.yml
 compose.yml
 railway.json
 
