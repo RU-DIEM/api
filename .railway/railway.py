@@ -96,6 +96,7 @@ def main(ctx: rsdk.RailwayContext | None = None) -> rsdk.Project:  # ruff: ignor
             "GRANIAN_WORKING_DIR": rsdk.preserve(),
             "GRANIAN_WS": rsdk.preserve(),
             "JWT_SECRET_KEY": rsdk.preserve(),
+            "MEDIA_ALLOWED_TYPES": rsdk.preserve(),
             "REDIS_SECRET_KEY": rsdk.preserve(),
             "REDIS_URL": rsdk.preserve(),
             "REQUIRE_EMAIL_VERIFICATION": rsdk.preserve(),

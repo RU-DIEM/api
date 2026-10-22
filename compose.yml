@@ -13,6 +13,7 @@ x-api-env: &api-env
   DATABASE_URL: postgresql://api:api@postgres:5432/api
   DEPLOY: ${DEPLOY:-False}
   JWT_SECRET_KEY: ${JWT_SECRET_KEY:?}
+  MEDIA_ALLOWED_TYPES: ${MEDIA_ALLOWED_TYPES:-application/pdf:pdf,image/jpeg:jpg,image/png:png,image/webp:webp}
   REDIS_SECRET_KEY: api
   REDIS_URL: redis://redis:6379
   SECRET_KEY: ${SECRET_KEY:?}

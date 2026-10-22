@@ -18,10 +18,12 @@ one doesn't accept JSON.
 
 The file's type is detected from its bytes, never from the
 `Content-Type` the client declared for the part, so renaming a script to
-`photo.png` doesn't get it through. By default, PNG, JPEG, WebP, and PDF
-are accepted; anything else is rejected with a `400`, with the reason under
-`files.file`. Images are also checked for integrity and for decompression
-bombs, and their dimensions are recorded as `width` and `height`.
+`photo.png` doesn't get it through. The accepted types come from
+`MEDIA_ALLOWED_TYPES` (PNG, JPEG, WebP, and PDF by default), which also sets
+the extension each type is stored with; anything else is rejected with a
+`400`, with the reason under `files.file`. Images are also checked for
+integrity and for decompression bombs, and their dimensions are recorded as
+`width` and `height`.
 
 Files over `MEDIA_MAX_BYTES` (5 MiB by default) are rejected with a `413`
 before they're read into memory.
@@ -64,7 +66,7 @@ Responses carry a `url` for the file, never its storage key:
 | `BUNNY_PRIVATE_PULL_ZONE_HOST` | Hostname of the pull zone serving private files.              |
 | `BUNNY_TOKEN_AUTH_KEY`         | Token authentication key of the private pull zone.            |
 | `BUNNY_SIGNED_URL_TTL_SECONDS` | How long signed URLs stay valid.                              |
-| `MEDIA_ALLOWED_MIME`           | JSON list of accepted types.                                  |
+| `MEDIA_ALLOWED_TYPES`          | Accepted types as `mime:extension` pairs, comma-separated.    |
 | `MEDIA_MAX_BYTES`              | Maximum file size.                                            |
 
 Both pull zones front the same storage zone, and files are stored under a

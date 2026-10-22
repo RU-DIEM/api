@@ -105,6 +105,19 @@ def test_validate_media_rejects_types(content: bytes) -> None:
     assert f"{RequestScopes.FILES}.file" in exc.value.field_errors
 
 
+def test_validate_media_follows_allowed_types(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(MEDIA_CONFIG, "MEDIA_ALLOWED_TYPES", {"image/png": "png"})
+
+    with pytest.raises(BadRequestError) as exc:
+        validate_media(image_bytes("JPEG"))
+
+    assert f"{RequestScopes.FILES}.file" in exc.value.field_errors
+
+    monkeypatch.setattr(MEDIA_CONFIG, "MEDIA_ALLOWED_TYPES", {"image/gif": "gif"})
+
+    assert validate_media(image_bytes("GIF")).extension == "gif"
+
+
 def test_validate_media_rejects_oversized(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(MEDIA_CONFIG, "MEDIA_MAX_BYTES", 10)
 

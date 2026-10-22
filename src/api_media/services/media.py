@@ -35,14 +35,6 @@ if TYPE_CHECKING:
 
 ########################################################################################
 
-EXTENSIONS: Final[dict[str, str]] = {
-    "application/pdf": "pdf",
-    "image/gif": "gif",
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-}
-
 # everything Pillow raises for corrupt, truncated, or unrecognized images
 IMAGE_ERRORS: Final[tuple[type[Exception], ...]] = (OSError, SyntaxError, ValueError)
 
@@ -125,11 +117,7 @@ def validate_media(content: bytes) -> ValidatedMedia:
 
     sniffed: SniffedContent = sniff_content(content)
 
-    if (
-        sniffed.mime is None
-        or sniffed.mime not in MEDIA_CONFIG.MEDIA_ALLOWED_MIME
-        or sniffed.mime not in EXTENSIONS
-    ):
+    if sniffed.mime is None or sniffed.mime not in MEDIA_CONFIG.MEDIA_ALLOWED_TYPES:
         raise file_error(
             f"El tipo de archivo detectado ({sniffed.mime or 'desconocido'}) "
             "no está permitido.",
@@ -138,7 +126,7 @@ def validate_media(content: bytes) -> ValidatedMedia:
     return ValidatedMedia(
         checksum=sha256(content).hexdigest(),
         content=content,
-        extension=EXTENSIONS[sniffed.mime],
+        extension=MEDIA_CONFIG.MEDIA_ALLOWED_TYPES[sniffed.mime],
         height=sniffed.height,
         mime=sniffed.mime,
         width=sniffed.width,
