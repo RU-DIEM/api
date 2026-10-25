@@ -19,7 +19,7 @@ from api_exceptions.enums import RequestScopes
 from api_exceptions.errors import ConflictError
 from api_utils.db import set_immediate_constraints
 
-from .base import CreateOperation, UpdateOperation, split_payload
+from .base import CreateOperation, UpdateOperation, delete_rows, split_payload
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -291,7 +291,7 @@ def write_collection(
     replace: bool,
 ) -> None:
     if replace:
-        child._default_manager.filter(**{back_ref: obj}).delete()
+        delete_rows(child._default_manager.filter(**{back_ref: obj}))
 
     objs: Sequence[DatabaseModel] = tuple(
         child(**item, **{back_ref: obj}) for item in items

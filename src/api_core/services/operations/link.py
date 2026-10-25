@@ -7,7 +7,7 @@ from django.db import DataError, IntegrityError
 from api_exceptions.enums import RequestScopes
 from api_exceptions.errors import ConflictError, NotFoundError
 
-from .base import ModelOperation
+from .base import ModelOperation, adelete_rows
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -177,9 +177,9 @@ class FlatLinkDetachOperation[Get: DTO](LinkDetachOperation[Get]):
 
     @override
     async def execute(self, lookup: dict) -> int:
-        deleted, _ = await self.qs.model._default_manager.filter(**lookup).adelete()  # ty: ignore[unresolved-attribute]
-
-        return deleted
+        return await adelete_rows(
+            self.qs.model._default_manager.filter(**lookup),  # ty: ignore[unresolved-attribute]
+        )
 
 
 ########################################################################################

@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import DataError, IntegrityError
 from django.db.transaction import TransactionManagementError
 
+from api_core.models.base import ApiSoftDeleteModel
 from api_exceptions.enums import RequestScopes
 from api_exceptions.errors import ConflictError, NotFoundError
 
@@ -32,6 +33,32 @@ def split_payload(data: dict, names: Sequence[str]) -> tuple[dict, dict]:
     }
 
     return payload, extracted
+
+
+def soft_deletes(qs: QuerySet) -> bool:
+    model: type[DatabaseModel] = qs.model  # ty: ignore[invalid-assignment]
+
+    return issubclass(model, ApiSoftDeleteModel)
+
+
+# soft deleted rows are never removed, so they skip django's deletion collector:
+# it would query every reverse relation and refuse over `RESTRICT` references
+def delete_rows(qs: QuerySet) -> int:
+    if soft_deletes(qs):
+        return qs.update(is_active=False)
+
+    deleted, _ = qs.delete()
+
+    return deleted
+
+
+async def adelete_rows(qs: QuerySet) -> int:
+    if soft_deletes(qs):
+        return await qs.aupdate(is_active=False)
+
+    deleted, _ = await qs.adelete()
+
+    return deleted
 
 
 ########################################################################################

@@ -9,6 +9,7 @@ from .base import (
     DestroyOperation,
     RetrieveOperation,
     UpdateOperation,
+    adelete_rows,
 )
 
 if TYPE_CHECKING:
@@ -42,14 +43,7 @@ class FlatDestroyOperation[Get: DTO](DestroyOperation[Get]):
             self.qs.prefetch_related(None).select_related(None).filter(**lookup)
         )
 
-        deleted, _ = await target.adelete()
-
-        if deleted:
-            return deleted
-
-        # a soft delete trigger rewrites the statement into an update,
-        # so postgres reports no deleted rows for a row that did exist
-        return int(await target.aexists())
+        return await adelete_rows(target)
 
 
 ########################################################################################

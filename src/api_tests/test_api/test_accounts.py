@@ -4,12 +4,15 @@ from uuid import uuid7
 import pytest
 
 from django.contrib.auth.models import Group, Permission
+from django.db import IntegrityError
 from dmr.test import DMRClient
 
 from api_auth.enums import ApiUserTypes
 from api_auth.models import ApiUser
 from api_core.services.mappers import MAX_UNPAGINATED
 from api_exceptions.errors import ForbiddenError, UnauthorizedError
+from api_media.enums import MediaVisibility
+from api_media.models import ApiMedia
 from api_tests.conftest import PASSWORD
 from api_tests.helpers import (
     PatchedHttpResponse,
@@ -632,6 +635,37 @@ def test_user_delete_soft_deletes(
     client_user.refresh_from_db()
 
     assert client_user.is_active is False
+
+
+def test_user_delete_ignores_restricted_references(
+    admin_client: DMRClient,
+    client_user: ApiUser,
+) -> None:
+    ApiMedia.objects.create(
+        checksum="0" * 64,
+        height=1,
+        mime="image/png",
+        size=1,
+        storage_key=f"{MediaVisibility.PUBLIC.value}/{uuid7()}.png",
+        uploaded_by=client_user,
+        visibility=MediaVisibility.PUBLIC,
+        width=1,
+    )
+
+    for _ in range(2):
+        response: PatchedHttpResponse = admin_client.delete(
+            route("auth-user-detail", id=client_user.pk),
+        )
+
+        assert response.status_code == HTTPStatus.NO_CONTENT
+
+    client_user.refresh_from_db()
+
+    assert client_user.is_active is False
+
+    # a real delete still has to respect the reference
+    with pytest.raises(IntegrityError):
+        ApiUser.objects.filter(pk=client_user.pk).delete()
 
 
 def test_user_delete_reports_a_missing_row(admin_client: DMRClient) -> None:
