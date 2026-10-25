@@ -2,6 +2,8 @@ from collections.abc import Callable
 from http import HTTPStatus
 from uuid import UUID
 
+import pytest
+
 from django.http import HttpResponse
 from django.urls import reverse
 from dmr.test import DMRClient
@@ -114,3 +116,15 @@ def mobile_login(client: DMRClient, user: ApiUser, password: str) -> dict:
     assert response.status_code == HTTPStatus.OK
 
     return response.json()
+
+
+########################################################################################
+
+
+# tests never follow the flag from `.env`; `CONFIG` is frozen,
+# so the only module that reads the flag gets a pinned copy
+def pin_email_verification(monkeypatch: pytest.MonkeyPatch, *, enabled: bool) -> None:
+    monkeypatch.setattr(
+        "api_auth.services.account.CONFIG",
+        CONFIG.model_copy(update={"REQUIRE_EMAIL_VERIFICATION": enabled}),
+    )

@@ -67,7 +67,7 @@ def settle_email(token: str) -> ApiUser:
         ApiUser.objects.filter(
             email_verified_at__isnull=True,
             pk=user.pk,
-        ).update(email_verified_at=now(), is_active=True)
+        ).update(email_verified_at=now())
 
         return user
 

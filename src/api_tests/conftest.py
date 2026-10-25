@@ -31,6 +31,7 @@ from api_auth.services.jwt import EncodedJwtPair, build_jwt_pair
 from api_core.api import schema
 from api_core.controllers.throttles import DEFAULT_THROTTLES, STRICT_THROTTLES
 from api_media.services.bunny import BUNNY_CLIENT
+from api_tests.helpers import pin_email_verification
 
 ########################################################################################
 
@@ -118,6 +119,11 @@ def bunny_storage() -> Generator[respx.MockRouter]:
         router.delete(name="delete", url__startswith=storage).respond(200)
 
         yield router
+
+
+@pytest.fixture(autouse=True)
+def require_email_verification(monkeypatch: pytest.MonkeyPatch) -> None:
+    pin_email_verification(monkeypatch, enabled=False)
 
 
 @pytest.fixture(autouse=True, scope="session")

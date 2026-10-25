@@ -10,10 +10,16 @@ from dmr.test import DMRClient
 
 from api_auth.enums import ApiUserTypes, VerificationPurposes
 from api_auth.models import ApiUser
+from api_auth.services.account import UNVERIFIED_DETAIL
 from api_auth.services.verification import LIFETIMES
-from api_core.config import CONFIG
 from api_tests.conftest import PASSWORD
-from api_tests.helpers import PatchedHttpResponse, assert_field_error, route
+from api_tests.helpers import (
+    PatchedHttpResponse,
+    assert_detail,
+    assert_field_error,
+    pin_email_verification,
+    route,
+)
 
 ########################################################################################
 
@@ -24,10 +30,7 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture(autouse=True)
 def require_email_verification(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "api_auth.services.account.CONFIG",
-        CONFIG.model_copy(update={"REQUIRE_EMAIL_VERIFICATION": True}),
-    )
+    pin_email_verification(monkeypatch, enabled=True)
 
 
 @pytest.fixture
@@ -269,3 +272,72 @@ def test_email_confirm_rejects_an_expired_code(
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert_field_error(response, "body.token")
+
+
+########################################################################################
+
+
+# registration retries its transaction, which a wrapping test transaction forbids
+@pytest.mark.django_db(transaction=True)
+def test_registration_waits_for_the_confirmed_address(
+    dmr_client: DMRClient,
+    seeded_groups: dict[str, Group],
+    sent_mail: list[dict],
+) -> None:
+    credentials: dict[str, str] = {"username": "pendiente", "password": PASSWORD}
+
+    response: PatchedHttpResponse = dmr_client.post(
+        route("auth-register"),
+        data={
+            "email": "pendiente@unit.example.com",
+            "group": ApiUserTypes.CLIENT.value,
+            "password1": PASSWORD,
+            "password2": PASSWORD,
+            "username": credentials["username"],
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json()["is_active"] is True
+    assert len(sent_mail) == 1
+
+    login: PatchedHttpResponse = dmr_client.post(
+        route("auth-mobile-login"),
+        data=credentials,
+    )
+
+    assert login.status_code == HTTPStatus.FORBIDDEN
+    assert_detail(login, UNVERIFIED_DETAIL)
+
+    confirm: PatchedHttpResponse = dmr_client.post(
+        route("auth-email-confirm"),
+        data={"token": sent_mail[0]["context"]["token"]},
+    )
+
+    assert confirm.status_code == HTTPStatus.NO_CONTENT
+    assert (
+        dmr_client.post(route("auth-mobile-login"), data=credentials).status_code
+        == HTTPStatus.OK
+    )
+
+
+def test_email_confirm_never_reactivates_a_deleted_user(
+    dmr_client: DMRClient,
+    unverified_user: ApiUser,
+    sent_mail: list[dict],
+) -> None:
+    dmr_client.post(
+        route("auth-email-resend"),
+        data={"email": unverified_user.email},
+    )
+
+    ApiUser.objects.filter(pk=unverified_user.pk).update(is_active=False)
+
+    dmr_client.post(
+        route("auth-email-confirm"),
+        data={"token": sent_mail[0]["context"]["token"]},
+    )
+
+    unverified_user.refresh_from_db()
+
+    assert unverified_user.is_active is False
