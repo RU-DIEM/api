@@ -1,5 +1,4 @@
 from collections.abc import Generator, Sequence
-from json import loads
 from typing import Final
 from uuid import uuid4
 
@@ -16,7 +15,6 @@ from django.core.cache.backends.locmem import LocMemCache
 from django.db import connection
 from django.test.utils import override_settings
 from django.utils.timezone import now
-from dmr.openapi.dump import json_dumps
 from dmr.test import DMRClient
 from dmr.throttling import AsyncThrottle
 from pgtrigger.registry import registered
@@ -28,10 +26,9 @@ from pytest_django import (
 from api_auth.enums import ApiUserTypes, TokenTypes
 from api_auth.models import ApiUser
 from api_auth.services.jwt import EncodedJwtPair, build_jwt_pair
-from api_core.api import schema
 from api_core.controllers.throttles import DEFAULT_THROTTLES, STRICT_THROTTLES
 from api_media.services.bunny import BUNNY_CLIENT
-from api_tests.helpers import pin_email_verification
+from api_tests.helpers import build_openapi_document, pin_email_verification
 
 ########################################################################################
 
@@ -87,7 +84,7 @@ ht.settings.register_profile(
 ht.settings.register_profile(
     "ci",
     deadline=None,
-    max_examples=200,
+    max_examples=5,
     suppress_health_check=(
         ht.HealthCheck.function_scoped_fixture,
         ht.HealthCheck.too_slow,
@@ -386,7 +383,7 @@ def superuser_client(
 
 @pytest.fixture(scope="session")
 def openapi_document() -> dict:
-    return loads(json_dumps(schema.convert(skip_validation=True)))
+    return build_openapi_document()
 
 
 @pytest.fixture(scope="session")

@@ -1,8 +1,10 @@
+from collections.abc import Generator
+
 import hypothesis as ht
 import pytest
 import schemathesis
 
-from pytest_django import Settings as PytestDjangoSettings
+from django.test.utils import override_settings
 from pytest_django.live_server_helper import LiveServer
 from schemathesis.checks import not_a_server_error
 from schemathesis.config import (
@@ -16,6 +18,7 @@ from tracecov import CoverageMap
 from tracecov.schemathesis import from_response
 
 from api_auth.services.jwt import EncodedJwtPair
+from api_tests.helpers import build_openapi_document
 
 ########################################################################################
 
@@ -24,9 +27,9 @@ pytestmark = pytest.mark.django_db(transaction=True)
 ########################################################################################
 
 
-@pytest.fixture(scope="session")
-def schemathesis_schema(openapi_document: dict) -> schemathesis.BaseSchema:
-    config = SchemathesisConfig(
+schema = schemathesis.openapi.from_dict(
+    build_openapi_document(),
+    config=SchemathesisConfig(
         projects=ProjectsConfig(
             default=ProjectConfig(
                 generation=GenerationConfig(
@@ -34,22 +37,23 @@ def schemathesis_schema(openapi_document: dict) -> schemathesis.BaseSchema:
                 ),
             ),
         ),
-    )
-
-    return schemathesis.openapi.from_dict(openapi_document, config=config)
-
-
-########################################################################################
-
-schema = schemathesis.pytest.from_fixture("schemathesis_schema")
+    ),
+)
 
 ########################################################################################
 
 
-@pytest.fixture(autouse=True)
-def live_server_static_url(settings: PytestDjangoSettings) -> None:
+# session scoped, because `live_server` is: it has to start with the url already set
+@pytest.fixture(autouse=True, scope="session")
+def live_server_static_url() -> Generator[None]:
     # gracias django por:
-    settings.STATIC_URL = "/static/"
+    override = override_settings(STATIC_URL="/static/")
+
+    override.enable()
+
+    yield
+
+    override.disable()
 
 
 ########################################################################################

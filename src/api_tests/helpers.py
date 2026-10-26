@@ -1,15 +1,19 @@
 from collections.abc import Callable
+from functools import cache
 from http import HTTPStatus
+from json import loads
 from uuid import UUID
 
 import pytest
 
 from django.http import HttpResponse
 from django.urls import reverse
+from dmr.openapi.dump import json_dumps
 from dmr.test import DMRClient
 
 from api_auth.models import ApiUser
 from api_auth.services.jwt import EncodedJwtPair
+from api_core.api import schema
 from api_core.config import CONFIG
 from api_exceptions.enums import RequestScopes
 
@@ -128,3 +132,13 @@ def pin_email_verification(monkeypatch: pytest.MonkeyPatch, *, enabled: bool) ->
         "api_auth.services.account.CONFIG",
         CONFIG.model_copy(update={"REQUIRE_EMAIL_VERIFICATION": enabled}),
     )
+
+
+########################################################################################
+
+
+# built at import time by `test_schemathesis`: a schema loaded from a fixture is lazy,
+# and schemathesis then runs every operation as a subtest of one test, on one worker
+@cache
+def build_openapi_document() -> dict:
+    return loads(json_dumps(schema.convert(skip_validation=True)))
