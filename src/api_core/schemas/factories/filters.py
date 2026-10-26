@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from datetime import date, datetime, time, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from enum import Enum, EnumType
 from functools import cache
@@ -48,6 +48,7 @@ from api_core.filters import (
 )
 from api_core.schemas.base import DTO
 from api_core.schemas.filters import FilterQuery
+from api_core.schemas.types import PgDateTime, PgTime
 from api_exceptions.enums import BadRequestErrorTypes, RequestScopes
 from api_exceptions.errors import BadRequestError
 
@@ -74,7 +75,7 @@ def build_filter_query[  # ruff: ignore[complex-structure, too-many-branches, to
             case DateFilter():
                 hint = date
             case DateTimeFilter() | IsoDateTimeFilter():
-                hint = datetime
+                hint = PgDateTime
             case DurationFilter():
                 hint = timedelta
             case DecimalFilter():
@@ -84,7 +85,7 @@ def build_filter_query[  # ruff: ignore[complex-structure, too-many-branches, to
             case IntFilter():
                 hint = int
             case TimeFilter():
-                hint = time
+                hint = PgTime
             case TypedChoiceFilter():
                 hint = field.enum
             case UUIDFilter():
@@ -95,7 +96,7 @@ def build_filter_query[  # ruff: ignore[complex-structure, too-many-branches, to
                     case DateFromToRangeFilter():
                         bounds_and_hint = ("after", "before", date)
                     case DateTimeFromToRangeFilter() | IsoDateTimeFromToRangeFilter():
-                        bounds_and_hint = ("after", "before", datetime)
+                        bounds_and_hint = ("after", "before", PgDateTime)
                     case DecimalRangeFilter():
                         bounds_and_hint = ("min", "max", Decimal)
                     case FloatRangeFilter():
@@ -103,7 +104,7 @@ def build_filter_query[  # ruff: ignore[complex-structure, too-many-branches, to
                     case IntRangeFilter():
                         bounds_and_hint = ("min", "max", int)
                     case TimeRangeFilter():
-                        bounds_and_hint = ("after", "before", time)
+                        bounds_and_hint = ("after", "before", PgTime)
                     case _:
                         raise TypeError(
                             f"{field.__class__.__name__} "

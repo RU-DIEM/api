@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta, timezone
 from uuid import UUID
 
 import hypothesis as ht
@@ -8,6 +8,7 @@ import pytest
 from pydantic_core import PydanticCustomError
 
 from api_core.schemas.validators import (
+    check_utc_offset,
     coerce_date,
     coerce_datetime,
     coerce_uuid,
@@ -52,6 +53,40 @@ def test_coerce_datetime_passes_through_unparseable_strings() -> None:
 
 def test_coerce_datetime_ignores_non_strings() -> None:
     assert coerce_datetime(None) is None
+
+
+########################################################################################
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        datetime(2026, 1, 1),  # ruff: ignore[call-datetime-without-tzinfo]
+        datetime(2026, 1, 1, tzinfo=timezone(timedelta(hours=15, minutes=59))),
+        datetime(2026, 1, 1, tzinfo=timezone(-timedelta(hours=15, minutes=59))),
+        time(12, tzinfo=timezone(timedelta(hours=-15, minutes=-59))),
+    ],
+)
+def test_check_utc_offset_accepts_offsets_postgres_can_store(
+    value: datetime | time,
+) -> None:
+    assert check_utc_offset(value) is value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        datetime(2026, 1, 1, tzinfo=timezone(timedelta(hours=16))),
+        datetime(2026, 1, 1, tzinfo=timezone(timedelta(hours=21, minutes=33))),
+        datetime(2026, 1, 1, tzinfo=timezone(-timedelta(hours=16))),
+        time(12, tzinfo=timezone(timedelta(hours=21, minutes=33))),
+    ],
+)
+def test_check_utc_offset_rejects_offsets_postgres_cannot_store(
+    value: datetime | time,
+) -> None:
+    with pytest.raises(PydanticCustomError):
+        check_utc_offset(value)
 
 
 ########################################################################################
