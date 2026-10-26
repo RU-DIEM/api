@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 from typing import Final
 from uuid import UUID
 
@@ -14,6 +14,9 @@ from pydantic_core import PydanticCustomError
 DATE_ADAPTER: Final[TypeAdapter[date]] = TypeAdapter(date)
 DATETIME_ADAPTER: Final[TypeAdapter[datetime]] = TypeAdapter(datetime)
 URL_ADAPTER: Final[TypeAdapter[HttpUrl]] = TypeAdapter(HttpUrl)
+
+# postgres rejects utc offsets of 16 hours or more
+MAX_UTC_OFFSET: Final[timedelta] = timedelta(hours=16)
 
 ########################################################################################
 
@@ -66,6 +69,22 @@ def coerce_datetime(value: object) -> object:
         return DATETIME_ADAPTER.validate_python(value, strict=False)
     except PydanticValidationError:
         return value
+
+
+########################################################################################
+
+
+def check_utc_offset[T: datetime | time](value: T) -> T:
+    offset: timedelta | None = value.utcoffset()
+
+    if offset is not None and abs(offset) >= MAX_UTC_OFFSET:
+        raise PydanticCustomError(
+            "api_custom",
+            "",
+            {"msg": "La zona horaria está fuera de rango."},
+        )
+
+    return value
 
 
 ########################################################################################

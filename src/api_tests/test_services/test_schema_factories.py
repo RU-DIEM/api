@@ -1,4 +1,4 @@
-from datetime import date, datetime, time, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from uuid import UUID
 
@@ -11,14 +11,17 @@ from django_filters import (
     DateFilter,
     DateFromToRangeFilter,
     DateTimeFilter,
+    DateTimeFromToRangeFilter,
     DurationFilter,
     FilterSet,
     NumberFilter,
     OrderingFilter,
     RangeFilter,
     TimeFilter,
+    TimeRangeFilter,
     UUIDFilter,
 )
+from pydantic import ValidationError
 
 from api_auth.enums import ApiUserTypes
 from api_auth.models import ApiUserGroups
@@ -37,6 +40,7 @@ from api_core.schemas.factories.filters import (
 )
 from api_core.schemas.factories.path import build_scoped_path
 from api_core.schemas.filters import UnpaginatedFilterQuery
+from api_core.schemas.types import PgDateTime, PgTime
 from api_exceptions.errors import BadRequestError
 
 ########################################################################################
@@ -56,6 +60,8 @@ class _WideFilterSet(FilterSet):
     label = CharFilter()
 
     created = DateFromToRangeFilter()
+    seen = DateTimeFromToRangeFilter()
+    hours = TimeRangeFilter()
     price = DecimalRangeFilter()
     score = FloatRangeFilter()
     age = IntRangeFilter()
@@ -77,17 +83,21 @@ def test_build_filter_query_maps_every_supported_filter_type() -> None:
 
     assert fields["flag"].annotation == (bool | None)
     assert fields["day"].annotation == (date | None)
-    assert fields["moment"].annotation == (datetime | None)
+    assert fields["moment"].annotation == (PgDateTime | None)
     assert fields["span"].annotation == (timedelta | None)
     assert fields["amount"].annotation == (Decimal | None)
     assert fields["ratio"].annotation == (float | None)
     assert fields["count"].annotation == (int | None)
-    assert fields["clock"].annotation == (time | None)
+    assert fields["clock"].annotation == (PgTime | None)
     assert fields["token"].annotation == (UUID | None)
     assert fields["label"].annotation == (str | None)
 
     assert "created_after" in fields
     assert "created_before" in fields
+    assert "seen_after" in fields
+    assert "seen_before" in fields
+    assert "hours_after" in fields
+    assert "hours_before" in fields
     assert "price_min" in fields
     assert "price_max" in fields
     assert "score_min" in fields
@@ -123,6 +133,45 @@ def test_build_filter_query_ignores_defaults_for_unknown_fields() -> None:
     built = build_filter_query(UnpaginatedFilterQuery, _WideFilterSet, nope=True)
 
     assert "nope" not in built.model_fields
+
+
+########################################################################################
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["moment", "seen_after", "seen_before"],
+)
+def test_build_filter_query_rejects_timestamps_postgres_cannot_store(
+    field: str,
+) -> None:
+    built = build_filter_query(UnpaginatedFilterQuery, _WideFilterSet)
+
+    assert built(**{field: "2026-01-01T00:00:00+15:59"})
+
+    with pytest.raises(ValidationError) as exc:
+        built(**{field: "2026-01-01T00:00:00+21:33"})
+
+    assert BadRequestError.from_validation_error(exc.value).field_errors == {
+        field: "La zona horaria está fuera de rango.",
+    }
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["clock", "hours_after", "hours_before"],
+)
+def test_build_filter_query_rejects_times_postgres_cannot_store(field: str) -> None:
+    built = build_filter_query(UnpaginatedFilterQuery, _WideFilterSet)
+
+    assert built(**{field: "12:00:00+15:59"})
+
+    with pytest.raises(ValidationError) as exc:
+        built(**{field: "12:00:00+21:33"})
+
+    assert BadRequestError.from_validation_error(exc.value).field_errors == {
+        field: "La zona horaria está fuera de rango.",
+    }
 
 
 ########################################################################################
