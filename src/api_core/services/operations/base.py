@@ -3,13 +3,15 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, override
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
+from django.db import DataError, IntegrityError
+from django.db.transaction import TransactionManagementError
 
+from api_core.models.base import ApiSoftDeleteModel
 from api_exceptions.enums import RequestScopes
 from api_exceptions.errors import ConflictError, NotFoundError
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Generator, Sequence
     from typing import ClassVar
 
     from django.db.models import QuerySet
@@ -31,6 +33,32 @@ def split_payload(data: dict, names: Sequence[str]) -> tuple[dict, dict]:
     }
 
     return payload, extracted
+
+
+def soft_deletes(qs: QuerySet) -> bool:
+    model: type[DatabaseModel] = qs.model  # ty: ignore[invalid-assignment]
+
+    return issubclass(model, ApiSoftDeleteModel)
+
+
+# soft deleted rows are never removed, so they skip django's deletion collector:
+# it would query every reverse relation and refuse over `RESTRICT` references
+def delete_rows(qs: QuerySet) -> int:
+    if soft_deletes(qs):
+        return qs.update(is_active=False)
+
+    deleted, _ = qs.delete()
+
+    return deleted
+
+
+async def adelete_rows(qs: QuerySet) -> int:
+    if soft_deletes(qs):
+        return await qs.aupdate(is_active=False)
+
+    deleted, _ = await qs.adelete()
+
+    return deleted
 
 
 ########################################################################################
@@ -73,13 +101,26 @@ class ModelOperation[Get: DTO](ABC):
 
     @classmethod
     @contextmanager
-    def exc_handler(cls, lookup: dict | None = None) -> Iterator[None]:
+    def exc_handler(cls, lookup: dict | None = None) -> Generator[None]:
         try:
             yield
         except IntegrityError as i:
             raise ConflictError.from_integrity_error(i).scoped(cls.scope) from i
-        except ObjectDoesNotExist as o:
+        except (DataError, ObjectDoesNotExist) as o:
+            # DataError covers values a column can't even represent
+            # such a value can never match a row, so 404
             raise NotFoundError(field_errors=lookup).scoped(RequestScopes.PATH) from o
+        except TransactionManagementError as t:
+            # a query issued while unwinding an already-broken transaction
+            # (like pgtrigger.ignore()'s cleanup) can mask the integrity
+            # error that broke it; recover it from the chain instead of
+            # surfacing an unrelated 500
+            if isinstance(t.__cause__, IntegrityError):
+                raise ConflictError.from_integrity_error(t.__cause__).scoped(
+                    cls.scope,
+                ) from t
+
+            raise
 
 
 ########################################################################################

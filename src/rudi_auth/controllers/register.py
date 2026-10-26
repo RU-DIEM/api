@@ -12,7 +12,7 @@ from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.services.operations import CreateOperation
 from rudi_auth.models import RudiUser
 from rudi_auth.schemas.register import RudiInvitePost, RudiRegisterGet, RudiRegisterPost
-from rudi_auth.schemas.verificacion import EmailConfirmPost, EmailResendPost
+from rudi_auth.schemas.verificacion import RudiEmailConfirmPost, RudiEmailResendPost
 from rudi_auth.services.account import confirm_email, resend_verification
 from rudi_auth.services.register import (
     RudiInviteCreateOperation,
@@ -36,8 +36,8 @@ class RudiRegisterController(
 ):
     create_operation: ClassVar[type[CreateOperation]] = RudiUserCreateOperation
 
-    @modify(status_code=HTTPStatus.CREATED)
     @sensitive_variables()
+    @modify(status_code=HTTPStatus.CREATED)
     async def post(self, parsed_body: Body[RudiRegisterPost]) -> RudiRegisterGet:
         return await self.build_operation(self.create_operation).run(parsed_body)
 
@@ -72,9 +72,9 @@ class EmailConfirmController(
     StrictThrottlingMixin,
     RudiAuthController,
 ):
-    @modify(status_code=HTTPStatus.NO_CONTENT)
     @sensitive_variables()
-    async def post(self, parsed_body: Body[EmailConfirmPost]) -> None:  # ruff: ignore[no-self-use]
+    @modify(status_code=HTTPStatus.NO_CONTENT)
+    async def post(self, parsed_body: Body[RudiEmailConfirmPost]) -> None:  # ruff: ignore[no-self-use]
         await confirm_email(parsed_body.token)
 
 
@@ -87,5 +87,5 @@ class EmailResendController(
     RudiAuthController,
 ):
     @modify(status_code=HTTPStatus.ACCEPTED)
-    async def post(self, parsed_body: Body[EmailResendPost]) -> None:  # ruff: ignore[no-self-use]
+    async def post(self, parsed_body: Body[RudiEmailResendPost]) -> None:  # ruff: ignore[no-self-use]
         await resend_verification(parsed_body.email)

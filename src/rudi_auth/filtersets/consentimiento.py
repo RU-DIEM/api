@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
 from django_filters import (
-    DateTimeFromToRangeFilter,
     FilterSet,
     OrderingFilter,
     UUIDFilter,
@@ -10,6 +9,7 @@ from django_filters import (
 from api_core.filters import LoweredFilter, TypedLoweredFilter
 from rudi_auth.enums import ConsentimientoCanalTypes
 from rudi_auth.models import ConsentimientoDatos
+from rudi_core.filters import PgDateTimeFromToRangeFilter
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -28,8 +28,8 @@ class ConsentimientoDatosFilterSet(FilterSet):
 
     canal = TypedLoweredFilter(enum=ConsentimientoCanalTypes)
 
-    otorgado_at = DateTimeFromToRangeFilter()
-    retirado_at = DateTimeFromToRangeFilter()
+    otorgado_at = PgDateTimeFromToRangeFilter()
+    retirado_at = PgDateTimeFromToRangeFilter()
 
     order = OrderingFilter(fields=("created_at", "otorgado_at", "retirado_at"))
 

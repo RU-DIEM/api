@@ -30,9 +30,9 @@ class UnsupportedMediaError(TypedApiError[UnsupportedMediaErrorTypes]):
     ENCODING_MARKER: Final[str] = "UTF-8"
     FILES_MARKER: Final[str] = "SupportsFileParsing"
 
-    default_detail: Final[str] = "No se pudo interpretar la solicitud."
+    default_detail: str = "No se pudo interpretar la solicitud."
 
-    default_http_status: Final[HTTPStatus] = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+    default_http_status: HTTPStatus = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
     @classmethod
     def from_serialization_error(

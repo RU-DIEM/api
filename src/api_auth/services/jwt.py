@@ -40,15 +40,6 @@ class EncodedJwtPair(NamedTuple):
 
 
 @dataclass(frozen=True, slots=True)
-class JwtSession:
-    tokens: EncodedJwtPair
-    user: ApiUser
-
-
-########################################################################################
-
-
-@dataclass(frozen=True, slots=True)
 class ParsedJwtPair:
     access: JWToken | None = None
     refresh: JWToken | None = None
@@ -71,19 +62,6 @@ class ParsedJwtPair:
         subjects: frozenset[str] = self.subjects
 
         return next(iter(subjects)) if len(subjects) == 1 else None
-
-    def subject(self) -> str:
-        subjects: frozenset[str] = self.subjects
-
-        if len(subjects) > 1:
-            raise UnauthorizedError(
-                detail="Los tokens proporcionados le pertenecen a usuarios distintos.",
-            )
-
-        if not subjects:
-            raise UnauthorizedError
-
-        return next(iter(subjects))
 
 
 ########################################################################################
@@ -156,18 +134,34 @@ def jwt_session_key(token: JWToken) -> str | None:
 ########################################################################################
 
 
+def build_challenge_jwt(user: ApiUser) -> str:
+    return build_jwt(
+        lifetime=CONFIG.JWT_CHALLENGE_LIFETIME,
+        token_type=TokenTypes.CHALLENGE,
+        user=user,
+    )
+
+
+########################################################################################
+
+
 def build_jwt(
     *,
     lifetime: timedelta,
-    session: str,
+    session: str | None = None,
     token_type: str,
     user: ApiUser,
 ) -> str:
+    extras: dict[str, str] = {"type": token_type}
+
+    if session is not None:
+        extras["sid"] = session
+
     return JWToken(
         sub=str(user.pk),
         exp=datetime.now(tz=UTC) + lifetime,
         jti=uuid4().hex,
-        extras={"sid": session, "type": token_type},
+        extras=extras,
     ).encode(
         algorithm=CONFIG.JWT_ALGORITHM,
         secret=CONFIG.JWT_SECRET_KEY.get_secret_value(),

@@ -6,7 +6,7 @@ from api_auth.models import ApiUser
 from api_auth.schemas.types import Password, Username
 from api_core.schemas.base import DTO
 from api_core.schemas.get import IsoDate, LaxEnum, RelatedId
-from api_core.schemas.validators import empty_or_email
+from rudi_auth.schemas.validators import empty_or_email
 from rudi_catalogos.enums import Etnias, Generos, TallasCamisa
 
 from .user import RudiUserGet, Telefono

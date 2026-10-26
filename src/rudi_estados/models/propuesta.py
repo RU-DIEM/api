@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class EstadoPropuesta(RudiEstado, VigenteFieldMixin):
     allow_portafolio = BooleanField(db_default=False, default=False)
 
-    class Meta(RudiEstado.Meta):
+    class Meta(RudiEstado.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *RudiEstado.Meta.constraints,
             CheckConstraint(

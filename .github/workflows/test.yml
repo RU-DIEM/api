@@ -32,7 +32,7 @@ permissions:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: checkout repo
@@ -48,4 +48,4 @@ jobs:
         uses: ./.github/actions/setup-services
 
       - name: run tests
-        run: uv run --frozen pytest --maxfail 1
+        run: uv run --frozen pytest --hypothesis-profile ci --maxfail 1

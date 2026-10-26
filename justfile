@@ -17,6 +17,8 @@ django_user := env("DJANGO_SUPERUSER_USERNAME", "")
 
 django_local := "http://" + django_host + ":" + django_port
 
+name := "api"
+
 ########################################################################################
 
 manage_py := just_dir + "src/manage.py"
@@ -48,14 +50,6 @@ check-dep cmd pretty="":
     fi
 
 [private]
-check-docker:
-    @just check-dep docker
-
-[private]
-check-uv:
-    @just check-dep uv
-
-[private]
 pre-commit $DEBUG="False":
     @just lint --fix
     @just fmt
@@ -64,7 +58,7 @@ pre-commit $DEBUG="False":
     @just test
 
 [private]
-run-frozen *cmd: check-uv
+run-frozen *cmd: (check-dep "uv")
     uv run --frozen {{ cmd }}
 
 ########################################################################################
@@ -87,10 +81,10 @@ fix *args="":
     @just lint --fix {{ args }}
 
 [group("uv")]
-fmt *args="": (check-dep "prettier")
+fmt *args="": (check-dep "oxfmt")
     @just run-frozen ruff format {{ args }}
     @just run-frozen tombi format
-    prettier --write .
+    oxfmt
 
 [group("uv")]
 lint *args="":
@@ -106,47 +100,16 @@ repl *args="":
     @just run-frozen python {{ args }}
 
 [group("uv")]
-sync: check-uv
+sync: (check-dep "uv")
     uv sync --frozen
 
 [group("uv")]
-test *args="": services
+test *args="": dc-up
     @just run-frozen pytest {{ args }}
 
 [group("uv")]
 zen:
     @just run-frozen zensical serve
-
-########################################################################################
-
-[group("docker")]
-build profile="dev": check-docker
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    SERVICE="api-{{ profile }}"
-
-    docker compose --profile {{ profile }} build  }}
-
-[group("docker")]
-services: check-docker
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    if [ -z "$(docker compose ps -q)" ]; then
-      docker compose up --detach --wait postgres redis
-    fi
-
-[group("docker")]
-up profile="dev": check-docker
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    SERVICE="api-{{ profile }}"
-
-    docker compose --profile {{ profile }} build "$SERVICE"
-    docker compose --profile {{ profile }} run --rm migrate
-    docker compose --profile {{ profile }} up --detach --wait "$SERVICE"
 
 ########################################################################################
 
@@ -217,49 +180,70 @@ init-local: init-env
 
     just sync
     just prek install
-    just services
+    just dc-up
     just migrate
     just mk-admin
     just dj-man populate
 
 [group("django")]
-migrate *args="": services
+migrate *args="": dc-up
     @just run-frozen {{ manage_py }} migrate {{ args }}
 
 [group("django")]
-mk-admin: services
+mk-admin: dc-up
     #!/usr/bin/env bash
     set -euo pipefail
 
     just run-frozen {{ manage_py }} createsuperuser --noinput
 
 [group("django")]
-mk-migrations *args="": services
+mk-migrations *args="": dc-up
     @just run-frozen {{ manage_py }} makemigrations {{ args }}
     @just fix
     @just fmt
 
 [group("django")]
-run $DEBUG="True" *args="": services validate
+run $DEBUG="True" *args="": dc-up validate
     @just run-frozen granian api_core.asgi:application --reload {{ args }}
 
 [group("django")]
-serve $DEBUG="False" *args="": services validate
+serve $DEBUG="False" *args="": dc-up validate
     @just run-frozen granian api_core.asgi:application {{ args }}
 
 [group("django")]
-validate *args="": services
+validate *args="": dc-up
     @just run-frozen {{ manage_py }} check {{ args }}
+
+########################################################################################
+
+[group("docker-compose")]
+dc-nuke: (check-dep "docker-compose")
+    docker compose down -v
+
+[group("docker-compose")]
+dc-psql: (check-dep "docker-compose") dc-up
+    docker exec -it {{ name }}-postgres-1 psql -U {{ name }} -d {{ name }}
+
+[group("docker-compose")]
+dc-stop: (check-dep "docker-compose")
+    docker compose stop
+
+[group("docker-compose")]
+dc-up:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    if [ -z "$(docker compose ps -q)" ]; then
+      docker compose up --detach --wait postgres redis
+    fi
 
 ########################################################################################
 
 [group("api")]
 [private]
-api-action target method endpoint args data:
+api-action target method endpoint args data: (check-dep "jq")
     #!/usr/bin/env bash
     set -euo pipefail
-
-    just check-dep jq
 
     TOKEN=$(just get-token {{ target }})
 
@@ -284,11 +268,9 @@ api-action target method endpoint args data:
 
 [group("api")]
 [private]
-get-token target:
+get-token target: (check-dep "jq")
     #!/usr/bin/env bash
     set -euo pipefail
-
-    just check-dep jq
 
     if [ "{{ target }}" == "local" ]; then
       BASE="{{ django_local }}"
@@ -340,8 +322,8 @@ request url method data token:
       exit 0
     fi
 
-    if command -v prettier > /dev/null 2>&1; then
-      prettier --ignore-path "" --write {{ request_json }} > /dev/null 2>&1
+    if command -v oxfmt > /dev/null 2>&1; then
+      oxfmt {{ request_json }} > /dev/null 2>&1
     fi
 
     if command -v zeditor > /dev/null 2>&1; then

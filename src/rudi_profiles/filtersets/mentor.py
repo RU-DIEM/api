@@ -32,7 +32,7 @@ class MentorProfileFilterSet(RudiProfileFilterSet):
 
     search = LoweredSearchFilter("descripcion_profesional")
 
-    class Meta(RudiProfileFilterSet.Meta):
+    class Meta(RudiProfileFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = MentorProfile
 

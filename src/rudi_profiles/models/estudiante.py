@@ -125,7 +125,7 @@ MIN_MAIN_TRIGGER: Final[Func] = Func(
 
 @track_table()
 class EstudianteProfile(RudiProfile):
-    class Meta(RudiProfile.Meta):
+    class Meta(RudiProfile.Meta):  # ty: ignore[invalid-attribute-override]
         triggers: Sequence[Trigger] = (
             *RudiProfile.Meta.triggers,
             Trigger(
@@ -161,7 +161,7 @@ class EstudianteCarrera(RudiProtectedModel):
     iniciada_en = PositiveSmallIntegerField(null=True)
     cerrada_at = DateTimeField(null=True)
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(nivel__in=(*NivelesCarrera.values, "")),

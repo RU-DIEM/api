@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Final
 
-from django.db.transaction import atomic
-
+from api_core.seeding import register_structural
 from rudi_catalogos.enums import ParametroGrupoTypes, ParametroTypes
 from rudi_catalogos.models import Parametro, PlantillaMensaje, TipoIdentificador
 
@@ -108,8 +107,8 @@ TIPOS_IDENTIFICADOR: Final[Sequence[dict]] = (
 ########################################################################################
 
 
-@atomic
-def execute() -> None:
+@register_structural(app_label="rudicatalogos", name="catalogos")
+def seed_catalogos() -> None:
     for fields in PARAMETROS:
         Parametro.objects.get_or_create(codigo=fields["codigo"], defaults=fields)
 

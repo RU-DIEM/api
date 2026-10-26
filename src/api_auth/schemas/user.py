@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import AfterValidator, PositiveInt, StringConstraints
+from pydantic import PositiveInt, StringConstraints
 
 from api_auth.enums import ApiUserTypes
 from api_auth.filtersets.user import ApiUserFilterSet
-from api_auth.models import ApiUser
 from api_core.schemas.factories import (
     build_filter_query,
     build_patch_schema,
@@ -13,11 +12,10 @@ from api_core.schemas.factories import (
 )
 from api_core.schemas.filters import PaginatedFilterQuery, UnpaginatedFilterQuery
 from api_core.schemas.get import DTO, BaseGet
-from api_core.schemas.validators import empty_or_email
 
 from .group import GroupInlineGet
 from .permission import PermissionGet
-from .types import Password, Username
+from .types import Email, Password, Username
 
 ########################################################################################
 
@@ -29,12 +27,12 @@ type ApiUserPost = ApiClientPost | ApiStaffPost
 
 
 class ApiUserInlineGet(BaseGet):
-    created_at: datetime
     is_active: bool
     first_name: str
     last_name: str
     username: str
     email: str
+    email_verified_at: datetime | None
 
 
 ########################################################################################
@@ -64,29 +62,8 @@ class ApiUserGet(ApiUserGroupsGet, ApiUserPermissionsGet, ApiUserInlineGet):
 class ApiUserBaseWrite(DTO):
     first_name: Annotated[str, StringConstraints(max_length=100)] = ""
     last_name: Annotated[str, StringConstraints(max_length=100)] = ""
-    email: Annotated[
-        str,
-        AfterValidator(func=empty_or_email),
-        AfterValidator(func=ApiUser.objects.normalize_email),
-        StringConstraints(max_length=254),
-    ] = ""
-
-    username: Annotated[Username, AfterValidator(func=ApiUser.normalize_username)]
-
-
-########################################################################################
-
-
-class ApiUserBasePost(ApiUserBaseWrite):
-    password1: Password
-    password2: Password
-
-
-########################################################################################
-
-
-class ApiUserWrite(ApiUserBaseWrite):
-    is_active: bool = True
+    email: Email
+    username: Username
 
 
 ########################################################################################
@@ -106,6 +83,14 @@ class ApiUserPermissionsWrite(DTO):
 ########################################################################################
 
 
+class ApiUserBasePost(ApiUserBaseWrite):
+    password1: Password
+    password2: Password
+
+
+########################################################################################
+
+
 class ApiClientPost(ApiUserBasePost):
     group: ApiClientGroups
 
@@ -119,7 +104,7 @@ class ApiStaffPost(ApiUserBasePost, ApiUserGroupsWrite, ApiUserPermissionsWrite)
 
 ########################################################################################
 
-ApiUserPut = build_put_schema(ApiUserWrite)
+ApiUserPut = build_put_schema(ApiUserBaseWrite)
 ApiUserPatch = build_patch_schema(ApiUserPut)
 
 ApiUserGroupsPut = build_put_schema(ApiUserGroupsWrite)

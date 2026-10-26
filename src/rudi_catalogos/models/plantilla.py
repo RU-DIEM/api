@@ -71,7 +71,7 @@ class PlantillaMensaje(RudiCatalogo):
         default=list,
     )
 
-    class Meta(RudiCatalogo.Meta):
+    class Meta(RudiCatalogo.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *filter(
                 lambda c: c.name != "chk_%(class)s_descripcion",

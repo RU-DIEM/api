@@ -21,7 +21,7 @@ class EstadoRudiUser(RudiEstado, RequireMotivoFieldMixin, AllowInscripcionFieldM
 
     visible_reportes = BooleanField(db_default=True, default=True)
 
-    class Meta(RudiEstado.Meta):
+    class Meta(RudiEstado.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *RudiEstado.Meta.constraints,
             CheckConstraint(

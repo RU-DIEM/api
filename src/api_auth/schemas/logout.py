@@ -1,28 +1,12 @@
-from api_core.schemas.base import DTO, PermissiveDTO
+from api_core.schemas.base import DTO
 
 from .types import JwtToken
 
 ########################################################################################
 
-type LogoutPost = MobileLogoutPost | WebLogoutPost
 
-########################################################################################
-
-
-class LogoutInput(DTO):
+# both tokens are optional: either one names the whole session, so sending
+# the one still at hand is enough to revoke the pair
+class MobileLogoutPost(DTO):
     access: JwtToken | None = None
     refresh: JwtToken | None = None
-
-
-########################################################################################
-
-
-class MobileLogoutPost(LogoutInput):
-    pass
-
-
-########################################################################################
-
-
-class WebLogoutPost(PermissiveDTO, LogoutInput):
-    pass

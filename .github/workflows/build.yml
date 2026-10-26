@@ -10,9 +10,9 @@ on:
       - "src/**"
       - "dockerfile"
       - "compose.yml"
-      - "compose.ci.yml"
       - "pyproject.toml"
       - "uv.lock"
+      - ".compose-ci.yml"
       - ".dockerignore"
       - ".python-version"
       - ".github/actions/setup-django-env/action.yml"
@@ -27,7 +27,7 @@ concurrency:
 
 env:
   COMPOSE_BAKE: "true"
-  COMPOSE_FILE: compose.yml:compose.ci.yml
+  COMPOSE_FILE: compose.yml:.compose-ci.yml
 
 permissions:
   contents: read

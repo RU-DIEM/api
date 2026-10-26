@@ -24,11 +24,15 @@
         packages = [
           pkgs.docker-compose
           pkgs.jq
-          pkgs.prettier
+          pkgs.oxfmt
           unstable.just
           unstable.railway
           unstable.uv
         ];
+
+        shellHook = ''
+          export SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt
+        '';
       };
     });
   };

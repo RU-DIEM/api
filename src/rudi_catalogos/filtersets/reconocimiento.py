@@ -13,6 +13,6 @@ if TYPE_CHECKING:
 
 
 class TipoReconocimientoFilterSet(RudiCatalogoFilterSet):
-    class Meta(RudiCatalogoFilterSet.Meta):
+    class Meta(RudiCatalogoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = TipoReconocimiento

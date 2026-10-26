@@ -17,8 +17,8 @@ class PasswordResetController(
     StrictThrottlingMixin,
     RudiAuthController,
 ):
-    @modify(status_code=HTTPStatus.ACCEPTED)
     @sensitive_variables()
+    @modify(status_code=HTTPStatus.ACCEPTED)
     async def post(self, parsed_body: Body[PasswordResetPost]) -> None:  # ruff: ignore[no-self-use]
         await request_reset(parsed_body.email)
 
@@ -31,8 +31,8 @@ class PasswordConfirmController(
     StrictThrottlingMixin,
     RudiAuthController,
 ):
-    @modify(status_code=HTTPStatus.NO_CONTENT)
     @sensitive_variables()
+    @modify(status_code=HTTPStatus.NO_CONTENT)
     async def post(self, parsed_body: Body[PasswordConfirmPost]) -> None:  # ruff: ignore[no-self-use]
         await confirm_reset(parsed_body)
 
@@ -45,7 +45,7 @@ class InviteAcceptController(
     StrictThrottlingMixin,
     RudiAuthController,
 ):
-    @modify(status_code=HTTPStatus.NO_CONTENT)
     @sensitive_variables()
+    @modify(status_code=HTTPStatus.NO_CONTENT)
     async def post(self, parsed_body: Body[PasswordConfirmPost]) -> None:  # ruff: ignore[no-self-use]
         await accept_invite(parsed_body)

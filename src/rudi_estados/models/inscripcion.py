@@ -20,7 +20,7 @@ class EstadoInscripcion(RudiSourceAwareEstado):
 
     allow_participacion = BooleanField(db_default=False, default=False)
 
-    class Meta(RudiSourceAwareEstado.Meta):
+    class Meta(RudiSourceAwareEstado.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *RudiSourceAwareEstado.Meta.constraints,
             CheckConstraint(

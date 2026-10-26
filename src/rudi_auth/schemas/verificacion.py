@@ -4,7 +4,7 @@ from pydantic import AfterValidator, StringConstraints
 
 from api_auth.models import ApiUser
 from api_core.schemas.base import DTO
-from api_core.schemas.validators import empty_or_email
+from rudi_auth.schemas.validators import empty_or_email
 
 ########################################################################################
 
@@ -16,14 +16,14 @@ type VerificationToken = Annotated[
 ########################################################################################
 
 
-class EmailConfirmPost(DTO):
+class RudiEmailConfirmPost(DTO):
     token: VerificationToken
 
 
 ########################################################################################
 
 
-class EmailResendPost(DTO):
+class RudiEmailResendPost(DTO):
     email: Annotated[
         str,
         AfterValidator(func=empty_or_email),

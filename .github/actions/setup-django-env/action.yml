@@ -7,6 +7,11 @@ runs:
       shell: bash
       run: |
         {
+          echo "BUNNY_STORAGE_ZONE=zone"
+          echo "BUNNY_STORAGE_API_KEY=$(openssl rand -hex 64)"
+          echo "BUNNY_PULL_ZONE_HOST=cdn.example.com"
+          echo "BUNNY_PRIVATE_PULL_ZONE_HOST=private.cdn.example.com"
+          echo "BUNNY_TOKEN_AUTH_KEY=$(openssl rand -hex 64)"
           echo "DEBUG=False"
           echo "DEPLOY=False"
           echo "SKIP_SEEDERS=False"

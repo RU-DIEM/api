@@ -1,6 +1,6 @@
 from http import HTTPStatus
 from re import search, sub
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 from django.db.models import ProtectedError, RestrictedError
 from psycopg.errors import (
@@ -25,9 +25,9 @@ if TYPE_CHECKING:
 
 
 class ConflictError(TypedApiError[ConflictErrorTypes]):
-    default_detail: Final[str] = "Hay un conflicto con el estado actual del recurso."
+    default_detail: str = "Hay un conflicto con el estado actual del recurso."
 
-    default_http_status: Final[HTTPStatus] = HTTPStatus.CONFLICT
+    default_http_status: HTTPStatus = HTTPStatus.CONFLICT
 
     @classmethod
     def determine_type(cls, exc: PsqlIntegrityError) -> ConflictErrorTypes:

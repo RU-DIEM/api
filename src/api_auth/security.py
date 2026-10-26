@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Final, override
 
+from django.views.decorators.debug import sensitive_variables
 from dmr.exceptions import NotAuthenticatedError
 from dmr.openapi.objects import SecurityScheme
-from dmr.security.jwt import JWTAsyncAuth
+from dmr.security.jwt.auth import CookieJWTAsyncAuth, HeaderJWTAsyncAuth
+from dmr.security.jwt.auth.base import BaseJWTAsyncAuth
 
-from api_auth.enums import TokenTypes
 from api_auth.services.blocklist import find_blocklisted_jtis
 from api_auth.services.csrf import ensure_csrf
 from api_auth.services.jwt import jwt_lookup_keys
@@ -16,28 +17,49 @@ if TYPE_CHECKING:
     from typing import Self
 
     from django.contrib.auth.base_user import AbstractBaseUser
-    from django.http import HttpRequest
     from dmr import Controller
     from dmr.endpoint import Endpoint
-    from dmr.openapi.objects import SecurityRequirement
+    from dmr.metadata import EndpointMetadata
+    from dmr.openapi.objects import Reference
     from dmr.security.jwt import JWToken
 
 ########################################################################################
 
+CSRF_SCHEME_NAME: Final[str] = "csrf"
 
-class JwtRbacAsyncAuth(JWTAsyncAuth):
+# the cookie carrying the token is `httponly`,
+# so what a client actually has to send is the header;
+# declared once for the whole document,
+# since both the cookie auth and the web auth controllers require it
+CSRF_SECURITY_SCHEME: Final[SecurityScheme] = SecurityScheme(
+    name=CONFIG.csrf_header,
+    security_scheme_in="header",
+    type="apiKey",
+)
+
+########################################################################################
+
+
+class JwtRbacAsyncAuth(BaseJWTAsyncAuth):
+    """
+    The transport-agnostic half of this API's jwt authentication.
+
+    `dmr` already decodes the token, rejects anything that is not an
+    access token, and loads an active user out of `sub`. On top of that
+    we refuse revoked sessions, apply the controller's model permissions,
+    and hand the user over to `pghistory`.
+    """
+
     __slots__ = ()
 
     @override
+    @sensitive_variables()
     async def __call__(
         self,
         endpoint: Endpoint,
         controller: Controller,
     ) -> Self | None:
-        authed: Self | None = await super().__call__(
-            endpoint,
-            controller,
-        )
+        authed: Self | None = await super().__call__(endpoint, controller)
 
         if authed is None:
             return None
@@ -50,6 +72,7 @@ class JwtRbacAsyncAuth(JWTAsyncAuth):
         return authed
 
     @override
+    @sensitive_variables()
     async def check_auth(
         self,
         user: AbstractBaseUser,
@@ -57,74 +80,65 @@ class JwtRbacAsyncAuth(JWTAsyncAuth):
     ) -> None:
         await super().check_auth(user, token)
 
-        if token.extras.get("type") != TokenTypes.ACCESS or await find_blocklisted_jtis(
-            jtis=jwt_lookup_keys(token),
-        ):
+        # a token is also dead when its session was revoked as a whole,
+        # so both keys are looked up at once instead of letting
+        # `JWTokenBlocklistAsyncMixin` spend a query on the `jti` alone
+        if await find_blocklisted_jtis(jwt_lookup_keys(token)):
             raise NotAuthenticatedError
 
 
 ########################################################################################
 
 
-class JwtCookieAsyncAuth(JwtRbacAsyncAuth):
+class JwtCookieAsyncAuth(JwtRbacAsyncAuth, CookieJWTAsyncAuth):
+    """
+    Reads the access token from its cookie, for browser clients.
+    """
+
     __slots__ = ()
 
     @override
-    async def __call__(
-        self,
-        endpoint: Endpoint,
-        controller: Controller,
-    ) -> Self | None:
-        authed: Self | None = await super().__call__(endpoint, controller)
-
-        if authed is not None:
+    def _ensure_csrf(self, controller: Controller) -> None:
+        if self.get_token_from_request(controller.request):
             ensure_csrf(controller.request)
 
-        return authed
+    @override
+    def auth_security_scheme(self) -> SecurityScheme:
+        return SecurityScheme(
+            name=self.cookie_name,
+            security_scheme_in="cookie",
+            type="apiKey",
+        )
 
     @override
-    def get_token_from_request(self, request: HttpRequest) -> str | None:
-        return request.COOKIES.get(TokenTypes.ACCESS)
-
-    @property
-    @override
-    def security_requirement(self) -> SecurityRequirement:
-        return {"csrf": [], self.security_scheme_name: []}
-
-    @property
-    @override
-    def security_schemes(self) -> dict[str, SecurityScheme]:
-        return {
-            "csrf": SecurityScheme(
-                name=CONFIG.csrf_header,
-                security_scheme_in="header",
-                type="apiKey",
-            ),
-            self.security_scheme_name: SecurityScheme(
-                name=TokenTypes.ACCESS,
-                security_scheme_in="cookie",
-                type="apiKey",
-            ),
-        }
-
-    @override
-    def split_encoded_token(self, header: str) -> str | None:
-        return header
+    def security_schemes(
+        self,
+        metadata: EndpointMetadata,
+        controller_cls: type[Controller],
+    ) -> dict[str, SecurityScheme | Reference]:
+        return {self.security_scheme_name: self.auth_security_scheme()}
 
 
 ########################################################################################
 
 
-class JwtHeaderAsyncAuth(JwtRbacAsyncAuth):
+class JwtHeaderAsyncAuth(JwtRbacAsyncAuth, HeaderJWTAsyncAuth):
+    """
+    Reads the access token from `Authorization: Bearer`, for native clients.
+    """
+
     __slots__ = ()
 
-    @property
     @override
-    def security_schemes(self) -> dict[str, SecurityScheme]:
+    def security_schemes(
+        self,
+        metadata: EndpointMetadata,
+        controller_cls: type[Controller],
+    ) -> dict[str, SecurityScheme | Reference]:
         return {
             self.security_scheme_name: SecurityScheme(
                 bearer_format="JWT",
-                scheme="Bearer",
+                scheme=self.auth_scheme,
                 type="http",
             ),
         }

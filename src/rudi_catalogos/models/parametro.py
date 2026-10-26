@@ -127,7 +127,7 @@ class Parametro(RudiCatalogo):
         to=settings.AUTH_USER_MODEL,
     )
 
-    class Meta(RudiCatalogo.Meta):
+    class Meta(RudiCatalogo.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *filter(
                 lambda c: c.name != "chk_%(class)s_codigo_format",

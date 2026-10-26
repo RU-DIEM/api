@@ -31,7 +31,7 @@ class Motivo(RudiCatalogo):
 
     require_descripcion = BooleanField(db_default=False, default=False)
 
-    class Meta(RudiCatalogo.Meta):
+    class Meta(RudiCatalogo.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *filter(
                 lambda c: (

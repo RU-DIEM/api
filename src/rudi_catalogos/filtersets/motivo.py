@@ -24,6 +24,6 @@ class MotivoFilterSet(RudiCatalogoFilterSet):
 
     search = LoweredSearchFilter(*CATALOGO_SEARCH_NO_DESC)
 
-    class Meta(RudiCatalogoFilterSet.Meta):
+    class Meta(RudiCatalogoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = Motivo

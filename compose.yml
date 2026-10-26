@@ -5,9 +5,15 @@ x-rudiapi-build: &rudiapi-build
   dockerfile: dockerfile
 
 x-rudiapi-env: &rudiapi-env
+  BUNNY_PRIVATE_PULL_ZONE_HOST: ${BUNNY_PRIVATE_PULL_ZONE_HOST:-private.cdn.example.com}
+  BUNNY_PULL_ZONE_HOST: ${BUNNY_PULL_ZONE_HOST:-cdn.example.com}
+  BUNNY_STORAGE_API_KEY: ${BUNNY_STORAGE_API_KEY:?}
+  BUNNY_STORAGE_ZONE: ${BUNNY_STORAGE_ZONE:-api-media}
+  BUNNY_TOKEN_AUTH_KEY: ${BUNNY_TOKEN_AUTH_KEY:?}
   DATABASE_URL: postgresql://rudiapi:rudiapi@postgres:5432/rudiapi
   DEPLOY: ${DEPLOY:-False}
   JWT_SECRET_KEY: ${JWT_SECRET_KEY:?}
+  MEDIA_ALLOWED_TYPES: ${MEDIA_ALLOWED_TYPES:-application/pdf:pdf,image/jpeg:jpg,image/png:png,image/webp:webp}
   REDIS_SECRET_KEY: rudiapi
   REDIS_URL: redis://redis:6379
   SECRET_KEY: ${SECRET_KEY:?}

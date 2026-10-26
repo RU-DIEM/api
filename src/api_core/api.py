@@ -4,12 +4,13 @@ from dmr.openapi import build_schema
 from dmr.routing import Router
 
 import api_auth.api
+import api_media.api
 import rudi_auth.api
 import rudi_catalogos.api
 import rudi_estados.api
 import rudi_profiles.api
 
-from api_core.controllers.routers import sort_urls
+from api_core.openapi import OPENAPI_CONFIG, ApiOpenAPIContext
 
 if TYPE_CHECKING:
     from typing import Final
@@ -18,15 +19,16 @@ if TYPE_CHECKING:
 
 ########################################################################################
 
-router: Final[Router] = Router(
-    prefix="",
-    urls=sort_urls((
-        *api_auth.api.router.urls,
-        *rudi_auth.api.router.urls,
-        *rudi_catalogos.api.router.urls,
-        *rudi_estados.api.router.urls,
-        *rudi_profiles.api.router.urls,
-    )),
-)
+router: Final[Router] = Router(prefix="")
 
-schema: Final[OpenAPI] = build_schema(router)
+router.include(api_auth.api.router)
+router.include(api_media.api.router)
+router.include(rudi_auth.api.router)
+router.include(rudi_catalogos.api.router)
+router.include(rudi_estados.api.router)
+router.include(rudi_profiles.api.router)
+
+schema: Final[OpenAPI] = build_schema(
+    router,
+    context=ApiOpenAPIContext(config=OPENAPI_CONFIG),
+)

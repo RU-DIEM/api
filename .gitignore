@@ -1,4 +1,4 @@
-.coverage
+.coverage*
 .env
 .request.json
 
@@ -7,13 +7,14 @@ __pycache__/
 .cache/
 .direnv/
 .hypothesis/
-.idea
-.pgdata/
+.idea/
 .pytest_cache/
 .ruff_cache/
 .venv/
 .vscode/*
-!.vscode/extensions.json
 
 media
 site
+
+!.coveragerc.toml
+!.vscode/extensions.json

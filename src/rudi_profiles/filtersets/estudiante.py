@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING
 
 from django_filters import (
     BooleanFilter,
-    DateTimeFromToRangeFilter,
     FilterSet,
     OrderingFilter,
     UUIDFilter,
@@ -10,6 +9,7 @@ from django_filters import (
 
 from api_core.filters import LoweredFilter, TypedLoweredFilter
 from rudi_catalogos.enums import NivelesCarrera
+from rudi_core.filters import PgDateTimeFromToRangeFilter
 from rudi_profiles.models import EstudianteCarrera, EstudianteProfile
 
 from .base import RudiProfileFilterSet
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 class EstudianteProfileFilterSet(RudiProfileFilterSet):
     carrera = LoweredFilter(field_name="carreras__carrera__codigo")
 
-    class Meta(RudiProfileFilterSet.Meta):
+    class Meta(RudiProfileFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstudianteProfile
 
@@ -44,7 +44,7 @@ class EstudianteCarreraFilterSet(FilterSet):
 
     vigente = BooleanFilter(method="filter_vigente")
 
-    cerrada_at = DateTimeFromToRangeFilter()
+    cerrada_at = PgDateTimeFromToRangeFilter()
 
     order = OrderingFilter(fields=("created_at", "iniciada_en"))
 

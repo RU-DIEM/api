@@ -1,9 +1,10 @@
-from typing import Annotated, TypeVar, override
+from typing import Annotated, Any, TypeVar, override
 
 from django.http import QueryDict
 from dmr import Controller
 from dmr.components import QueryComponent
 from dmr.endpoint import Endpoint
+from dmr.types import EMPTY
 
 from api_exceptions.enums import BadRequestErrorTypes, RequestScopes
 from api_exceptions.errors import BadRequestError
@@ -21,6 +22,7 @@ class StrictQueryComponent(QueryComponent):
         controller: Controller,
         *,
         field_model,  # ruff: ignore[missing-type-function-argument]
+        default: Any = EMPTY,
     ) -> dict:
         params: QueryDict = controller.request.GET
 
@@ -46,6 +48,7 @@ class StrictQueryComponent(QueryComponent):
             endpoint,
             controller,
             field_model=field_model,
+            default=default,
         )
 
 

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class FacultadFilterSet(RudiCatalogoFilterSet):
     abreviacion = LoweredFilter()
 
-    class Meta(RudiCatalogoFilterSet.Meta):
+    class Meta(RudiCatalogoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = Facultad
 
@@ -29,7 +29,7 @@ class FacultadFilterSet(RudiCatalogoFilterSet):
 class CarreraFilterSet(RudiCatalogoFilterSet):
     facultad = LoweredFilter(field_name="facultad__codigo")
 
-    class Meta(RudiCatalogoFilterSet.Meta):
+    class Meta(RudiCatalogoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = Carrera
 

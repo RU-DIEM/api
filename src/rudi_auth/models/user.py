@@ -122,7 +122,7 @@ class RudiUser(RudiProtectedModel):
     email_verified_at = DateTimeField(null=True)
     anonimizado_at = DateTimeField(null=True)
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(origen__in=InputSourceTypes.values),

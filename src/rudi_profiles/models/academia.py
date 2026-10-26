@@ -41,7 +41,7 @@ class Carrera(RudiCatalogo):
 
     duracion = PositiveSmallIntegerField(null=True)
 
-    class Meta(RudiCatalogo.Meta):
+    class Meta(RudiCatalogo.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *RudiCatalogo.Meta.constraints,
             CheckConstraint(
@@ -68,7 +68,7 @@ class Institucion(RudiSoftDeleteModel):
 
     normalizada_at = DateTimeField(null=True)
 
-    class Meta(RudiSoftDeleteModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(tipo__in=InstitucionTypes.values),

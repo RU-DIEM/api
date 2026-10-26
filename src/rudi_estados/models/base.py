@@ -35,7 +35,7 @@ class RudiEstado(RudiSoftDeleteModel):
     etiqueta = CharField(max_length=50)
     descripcion = TextField(db_default="", default="")
 
-    class Meta(RudiSoftDeleteModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
@@ -69,7 +69,7 @@ class RudiEstado(RudiSoftDeleteModel):
 
 
 class RudiSourceAwareEstado(RudiEstado, SourceFieldMixin):
-    class Meta(RudiEstado.Meta):
+    class Meta(RudiEstado.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
@@ -89,7 +89,7 @@ class RudiTransicion(RudiSoftDeleteModel, RequireMotivoFieldMixin):
 
     actor = CharField(max_length=20)
 
-    class Meta(RudiSoftDeleteModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
@@ -112,7 +112,7 @@ def build_concrete_transicion(ref: type[RudiEstado]) -> type[RudiTransicion]:
         from_estado = ForeignKey(on_delete=RESTRICT, related_name="+", to=ref)
         to_estado = ForeignKey(on_delete=RESTRICT, related_name="+", to=ref)
 
-        class Meta(RudiTransicion.Meta):
+        class Meta(RudiTransicion.Meta):  # ty: ignore[invalid-attribute-override]
             abstract: bool = True
 
             constraints: Sequence[CheckConstraint | UniqueConstraint] = (

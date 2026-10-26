@@ -15,6 +15,11 @@ from .list import (
     ModelNestedListController,
     ModelReadOnlyListController,
 )
+from .scoped import (
+    ScopedDetailController,
+    ScopedListController,
+    ScopedReadOnlyListController,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -33,4 +38,7 @@ __all__: Sequence[str] = (
     "ModelReadOnlyDetailController",
     "ModelReadOnlyListController",
     "ModelReadUpdateDetailController",
+    "ScopedDetailController",
+    "ScopedListController",
+    "ScopedReadOnlyListController",
 )

@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 
 CACHES: Final[dict[str, dict]] = {"default": CONFIG.redis_cache}
 DATABASES: Final[dict[str, dict]] = {"default": CONFIG.pg_database}
+MAILERS: Final[dict[str, dict]] = {"default": CONFIG.default_mailer}
+
 DEBUG: Final[bool] = CONFIG.DEBUG
 SECRET_KEY: Final[str] = CONFIG.SECRET_KEY.get_secret_value()
 USE_X_FORWARDED_HOST: Final[bool] = CONFIG.DEPLOY
@@ -29,14 +31,7 @@ USE_X_FORWARDED_HOST: Final[bool] = CONFIG.DEPLOY
 ########################################################################################
 
 DEFAULT_FROM_EMAIL: Final[str] = CONFIG.DEFAULT_FROM_EMAIL
-EMAIL_BACKEND: Final[str] = CONFIG.EMAIL_BACKEND
-EMAIL_HOST: Final[str] = CONFIG.EMAIL_HOST
-EMAIL_HOST_PASSWORD: Final[str] = CONFIG.EMAIL_HOST_PASSWORD.get_secret_value()
-EMAIL_HOST_USER: Final[str] = CONFIG.EMAIL_HOST_USER
-EMAIL_PORT: Final[int] = CONFIG.EMAIL_PORT
-EMAIL_USE_TLS: Final[bool] = CONFIG.EMAIL_USE_TLS
-
-FRONTEND_URL: Final[str] = str(CONFIG.FRONTEND_URL).rstrip("/")
+FRONTEND_URL: Final[str] = CONFIG.frontend_url
 
 ########################################################################################
 
@@ -87,8 +82,8 @@ CSRF_TRUSTED_ORIGINS: Final[Sequence[str]] = (
     "http://127.0.0.1:3000",
 )
 
-FILE_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 2_621_440
-DATA_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 2_621_440
+FILE_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 5_242_880
+DATA_UPLOAD_MAX_MEMORY_SIZE: Final[int] = 5_242_880
 DATA_UPLOAD_MAX_NUMBER_FIELDS: Final[int] = 100
 DATA_UPLOAD_MAX_NUMBER_FILES: Final[int] = 100
 
@@ -116,6 +111,7 @@ INSTALLED_APPS: Final[Sequence[str]] = (
     "pghistory",
     "api_core",
     "api_auth",
+    "api_media",
     "rudi_core",
     "rudi_estados",
     "rudi_catalogos",

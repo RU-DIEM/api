@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from django_filters import FilterSet, OrderingFilter
+from django_filters import OrderingFilter
 
 from api_auth.enums import ApiUserTypes
 from api_auth.models import ApiUser
@@ -10,16 +10,15 @@ from api_core.filters import (
     LoweredSearchFilter,
     TypedChoiceFilter,
 )
+from api_core.filtersets import ApiSoftDeleteFilterSet
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from django.db.models import Model
 
 ########################################################################################
 
 
-class ApiUserFilterSet(FilterSet):
+class ApiUserFilterSet(ApiSoftDeleteFilterSet):
     first_name = LoweredFilter()
     last_name = LoweredFilter()
     email = LoweredFilter()
@@ -34,6 +33,5 @@ class ApiUserFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("username", "email", "created_at"))
 
-    class Meta:
-        fields: Sequence[str] = ("id", "is_active")
+    class Meta(ApiSoftDeleteFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = ApiUser

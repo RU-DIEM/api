@@ -14,6 +14,8 @@ from api_core.services.operations.m2m import exec_m2m_post
 from api_exceptions.enums import BadRequestErrorTypes, RequestScopes
 from api_exceptions.errors import BadRequestError, UnauthorizedError
 
+from .account import ensure_email_verified, issue_email_verification
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -21,7 +23,6 @@ if TYPE_CHECKING:
     from pydantic import PositiveInt
 
     from api_auth.models import ApiUser
-    from api_auth.schemas.login import LoginPost
     from api_auth.schemas.user import ApiUserGet, ApiUserPost
     from api_utils.types import DatabaseModel
 
@@ -37,17 +38,43 @@ class PasswordPair(Protocol):
 
 
 @sensitive_variables()
-async def authenticate_user(data: LoginPost, request: HttpRequest) -> ApiUser:
+async def authenticate_user(
+    *,
+    password: str,
+    request: HttpRequest,
+    username: str,
+) -> ApiUser:
+    """
+    Resolve the account behind a set of credentials.
+
+    The credentials arrive already converted to the kwargs django's
+    backends expect, which is what `ObtainTokensPayload` carries.
+
+    Args:
+        password: The password that was sent.
+        request: The request the credentials arrived with.
+        username: The name of the account being opened.
+
+    Returns:
+        The account the credentials belong to.
+
+    Raises:
+        UnauthorizedError: When no active account matches them.
+
+    """
+
     user: ApiUser | None = await aauthenticate(
         request,
-        password=data.password,
-        username=data.username,
+        password=password,
+        username=username,
     )
 
     if user is None:
         raise UnauthorizedError(
             detail="Las credenciales proporcionadas no son válidas.",
         )
+
+    ensure_email_verified(user)
 
     set_request_attrs(request, user)
 
@@ -138,9 +165,13 @@ class UserCreateOperation[
     @override
     @sensitive_variables()
     async def execute(self, data: dict) -> DatabaseModel:
-        return await sync_to_async(func=exec_m2m_post)(
+        user: DatabaseModel = await sync_to_async(func=exec_m2m_post)(
             *self.fields,
             data=data,
             qs=self.qs,
             user=True,
         )
+
+        await issue_email_verification(user)  # ty: ignore[invalid-argument-type]
+
+        return user

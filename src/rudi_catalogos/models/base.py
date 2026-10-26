@@ -16,7 +16,7 @@ class RudiCatalogo(RudiSoftDeleteModel):
     etiqueta = CharField(db_default="", default="", max_length=100)
     descripcion = TextField(db_default="", default="")
 
-    class Meta(RudiSoftDeleteModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (

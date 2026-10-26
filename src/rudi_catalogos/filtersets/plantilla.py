@@ -18,6 +18,6 @@ class PlantillaMensajeFilterSet(RudiCatalogoFilterSet):
 
     search = LoweredSearchFilter(*CATALOGO_SEARCH_NO_DESC, "asunto", "cuerpo")
 
-    class Meta(RudiCatalogoFilterSet.Meta):
+    class Meta(RudiCatalogoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = PlantillaMensaje

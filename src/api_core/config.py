@@ -7,6 +7,8 @@ from urllib.parse import unquote
 from psycopg import IsolationLevel
 from pydantic import (
     HttpUrl,
+    NonNegativeInt,
+    PositiveInt,
     PostgresDsn,
     RedisDsn,
     SecretStr,
@@ -38,7 +40,7 @@ type OptionalSecret = Annotated[
 
 
 class ApiConfig(BaseSettings, PermissiveDTO):
-    model_config = SettingsConfigDict(
+    model_config = SettingsConfigDict(  # ty: ignore[invalid-mutable-override]
         enable_decoding=False,
         env_file=(ROOT / ".env"),
         env_file_encoding="utf-8",
@@ -52,7 +54,33 @@ class ApiConfig(BaseSettings, PermissiveDTO):
     JWT_ALGORITHM: Literal["HS256", "HS384", "HS512"] = "HS256"
 
     JWT_ACCESS_LIFETIME: timedelta = timedelta(hours=3)
+    JWT_CHALLENGE_LIFETIME: timedelta = timedelta(minutes=5)
     JWT_REFRESH_LIFETIME: timedelta = timedelta(days=1)
+
+    TOTP_DIGITS: Literal[6, 8] = 6
+    TOTP_ISSUER: Annotated[
+        str,
+        StringConstraints(max_length=64, min_length=1),
+    ] = "api"
+
+    TOTP_LOCKOUT: timedelta = timedelta(minutes=15)
+    TOTP_MAX_FAILURES: PositiveInt = 5
+    TOTP_PERIOD: PositiveInt = 30
+    TOTP_RECOVERY_CODES: PositiveInt = 10
+    TOTP_TOLERANCE: NonNegativeInt = 1
+
+    DEFAULT_FROM_EMAIL: str = "no-reply@localhost"
+    EMAIL_BACKEND: str = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST: str = "smtp.resend.com"
+    EMAIL_HOST_PASSWORD: OptionalSecret = SecretStr(secret_value="")
+    EMAIL_HOST_USER: str = "resend"
+    EMAIL_PORT: PositiveInt = 587
+    EMAIL_USE_TLS: bool = True
+
+    EMAIL_VERIFICATION_LIFETIME: timedelta = timedelta(hours=24)
+    REQUIRE_EMAIL_VERIFICATION: bool = False
+
+    FRONTEND_URL: HttpUrl = HttpUrl(url="http://localhost:3000")
 
     DATABASE_URL: PostgresDsn
     REDIS_URL: RedisDsn
@@ -61,16 +89,6 @@ class ApiConfig(BaseSettings, PermissiveDTO):
     SECRET_KEY: LongSecret
 
     REDIS_SECRET_KEY: OptionalSecret = SecretStr(secret_value="")
-
-    DEFAULT_FROM_EMAIL: str = "no-reply@localhost"
-    EMAIL_BACKEND: str = "django.core.mail.backends.console.EmailBackend"
-    EMAIL_HOST: str = ""
-    EMAIL_HOST_PASSWORD: OptionalSecret = SecretStr(secret_value="")
-    EMAIL_HOST_USER: str = ""
-    EMAIL_PORT: int = 587
-    EMAIL_USE_TLS: bool = True
-
-    FRONTEND_URL: HttpUrl = HttpUrl("http://localhost:3000")
 
     @model_validator(mode="after")
     def check_cookie_policy(self) -> Self:
@@ -119,6 +137,27 @@ class ApiConfig(BaseSettings, PermissiveDTO):
         return self
 
     @model_validator(mode="after")
+    def check_lifetimes(self) -> Self:
+        expired: Sequence[str] = tuple(
+            name
+            for name in (
+                "EMAIL_VERIFICATION_LIFETIME",
+                "JWT_ACCESS_LIFETIME",
+                "JWT_CHALLENGE_LIFETIME",
+                "JWT_REFRESH_LIFETIME",
+            )
+            if getattr(self, name) <= timedelta()
+        )
+
+        if expired:
+            raise ValueError(
+                f"{', '.join(f'`{name}`' for name in expired)} "
+                "debe ser una duración positiva.",
+            )
+
+        return self
+
+    @model_validator(mode="after")
     def check_redis_secret_key(self) -> Self:
         if (
             self.DEPLOY
@@ -137,6 +176,18 @@ class ApiConfig(BaseSettings, PermissiveDTO):
         return "Lax" if self.DEBUG and not self.DEPLOY else "None"
 
     @cached_property
+    def cookie_samesite_policy(self) -> Literal["lax", "none"]:
+        """
+        `cookie_samesite`, spelled the way `dmr.cookies.CookieSpec` wants it.
+
+        Django writes the flag verbatim and browsers match it
+        case-insensitively, but `CookieSpec` compares the value it
+        describes against the one we set, so the two must agree exactly.
+        """
+
+        return "lax" if self.cookie_samesite == "Lax" else "none"
+
+    @cached_property
     def cookie_secure(self) -> bool:
         return not self.DEBUG or self.DEPLOY
 
@@ -147,6 +198,23 @@ class ApiConfig(BaseSettings, PermissiveDTO):
     @cached_property
     def csrf_header(self) -> str:
         return f"x-{self.csrf_cookie_name}"
+
+    @cached_property
+    def frontend_url(self) -> str:
+        return str(self.FRONTEND_URL).rstrip("/")
+
+    @cached_property
+    def default_mailer(self) -> dict:
+        return {
+            "BACKEND": self.EMAIL_BACKEND,
+            "OPTIONS": {
+                "host": self.EMAIL_HOST,
+                "username": self.EMAIL_HOST_USER,
+                "password": self.EMAIL_HOST_PASSWORD.get_secret_value(),
+                "port": self.EMAIL_PORT,
+                "use_tls": self.EMAIL_USE_TLS,
+            },
+        }
 
     @cached_property
     def pg_database(self) -> dict:

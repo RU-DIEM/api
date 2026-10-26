@@ -19,6 +19,6 @@ class DocenteProfileFilterSet(RudiProfileFilterSet):
 
     nivel_academico = TypedLoweredFilter(enum=NivelesAcademicos)
 
-    class Meta(RudiProfileFilterSet.Meta):
+    class Meta(RudiProfileFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = DocenteProfile

@@ -21,7 +21,7 @@ class EstadoParticipacion(RudiEstado):
     allow_constancia = BooleanField(db_default=False, default=False)
     allow_puntos = BooleanField(db_default=False, default=False)
 
-    class Meta(RudiEstado.Meta):
+    class Meta(RudiEstado.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             *RudiEstado.Meta.constraints,
             CheckConstraint(

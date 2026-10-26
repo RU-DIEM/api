@@ -37,7 +37,7 @@ class PoliticaPrivacidad(RudiProtectedModel):
     vigente_desde = DateField()
     vigente_hasta = DateField(null=True)
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(version__regex=r"^\d+\.\d+$"),
@@ -93,7 +93,7 @@ class ConsentimientoDatos(RudiProtectedModel):
 
     evidencia_url = URLField(db_default="", default="", max_length=500)
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(canal__in=ConsentimientoCanalTypes.values),

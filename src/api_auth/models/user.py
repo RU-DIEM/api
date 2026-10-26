@@ -13,12 +13,24 @@ from django.db.models import (
     Q,
     UniqueConstraint,
 )
-from django.db.models.functions import Lower, Now, Upper
-from django.utils.timezone import now
-from pgtrigger import Insert, Protect, ReadOnly, SoftDelete
+from django.db.models.functions import Lower, Upper
+from pgtrigger import (
+    After,
+    Before,
+    Deferred,
+    F as TriggerF,
+    Func as TriggerFunc,
+    Insert,
+    Protect,
+    Q as TriggerQ,
+    Row,
+    Trigger,
+    Update,
+)
 
-from api_core.models.base import ApiModel
+from api_core.models.base import ApiSoftDeleteModel
 from api_utils.db import ImmutableUnaccent, track_table
+from api_utils.strings import normalize_trigger
 
 from .manager import ApiUserManager
 
@@ -27,22 +39,46 @@ if TYPE_CHECKING:
     from typing import Final
 
     from django.db.models import QuerySet
-    from pgtrigger import Trigger
 
     from ty_extensions import Intersection
 
 ########################################################################################
 
+SINGLETON_SUPERUSER: Final[str] = normalize_trigger("""
+DECLARE
+    active_superusers INTEGER;
+BEGIN
+    SELECT COUNT(*)
+    INTO active_superusers
+    FROM {meta.db_table}
+    WHERE is_active AND is_superuser;
+    IF active_superusers = 0 THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'is_superuser',
+            MESSAGE = 'Debe existir al menos un superusuario activo.';
+    ELSIF active_superusers > 1 THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'is_superuser',
+            MESSAGE = 'Solo puede existir un superusuario activo a la vez.';
+    END IF;
+    RETURN NULL;
+END;
+""")
+
+########################################################################################
+
 
 @track_table()
-class ApiUser(ApiModel, AbstractBaseUser, PermissionsMixin):
+class ApiUser(ApiSoftDeleteModel, AbstractBaseUser, PermissionsMixin):
     first_name = CharField(db_default="", default="", max_length=100)
     last_name = CharField(db_default="", default="", max_length=100)
-    email = EmailField(db_default="", default="")
+    email = EmailField()
     username = CharField(max_length=100)
     password = CharField(max_length=128)
 
-    created_at = DateTimeField(db_default=Now(), default=now)
+    email_verified_at = DateTimeField(db_default=None, default=None, null=True)
 
     is_active = BooleanField(db_default=False, default=False)
     is_staff = BooleanField(db_default=False, default=False)
@@ -68,17 +104,17 @@ class ApiUser(ApiModel, AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD: Final[str] = "email"
     USERNAME_FIELD: Final[str] = "username"
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 Lower("email"),
-                condition=Q(email__len__gt=0, is_active=True),
-                name="unq_apiuser_email",
+                condition=Q(is_active=True),
+                name="unq_%(class)s_email",
             ),
             UniqueConstraint(
                 Lower("username"),
                 condition=Q(is_active=True),
-                name="unq_apiuser_username",
+                name="unq_%(class)s_username",
             ),
         )
 
@@ -88,7 +124,7 @@ class ApiUser(ApiModel, AbstractBaseUser, PermissionsMixin):
                     expression=Upper(ImmutableUnaccent("username")),
                     name="gin_trgm_ops",
                 ),
-                name="gin_apiuser_username",
+                name="gin_%(class)s_username",
             ),
             GinIndex(
                 OpClass(
@@ -96,16 +132,49 @@ class ApiUser(ApiModel, AbstractBaseUser, PermissionsMixin):
                     name="gin_trgm_ops",
                 ),
                 condition=Q(email__len__gt=0),
-                name="gin_apiuser_email",
+                name="gin_%(class)s_email",
             ),
-            Index(fields=["created_at"], name="idx_apiuser_createdat"),
-            Index(fields=["is_active"], name="idx_apiuser_isactive"),
+            Index(fields=["created_at"], name="idx_%(class)s_createdat"),
+            Index(fields=["email_verified_at"], name="idx_%(class)s_emailverifiedat"),
+            Index(fields=["is_active"], name="idx_%(class)s_isactive"),
         )
 
         ordering: Sequence[str] = ("username",)
         triggers: Sequence[Trigger] = (
-            *ApiModel.Meta.triggers,
+            *ApiSoftDeleteModel.Meta.triggers,
             Protect(name="trg_apiuser_protect_insert", operation=Insert),
-            ReadOnly(fields=["created_at"], name="trg_apiuser_readonly_createdat"),
-            SoftDelete(field="is_active", name="trg_apiuser_softdelete_isactive"),
+            Trigger(
+                condition=TriggerQ(old__email__df=TriggerF("new__email")),
+                func="NEW.email_verified_at = NULL; RETURN NEW;",
+                name="trg_apiuser_unverify_email",
+                operation=Update,
+                when=Before,
+            ),
+            Trigger(
+                condition=TriggerQ(new__is_superuser=True, new__is_active=True),
+                func=TriggerFunc(SINGLETON_SUPERUSER),
+                level=Row,
+                name="trg_apiuser_superuser_insert_singleton",
+                operation=Insert,
+                timing=Deferred,
+                when=After,
+            ),
+            Trigger(
+                condition=(
+                    (
+                        TriggerQ(old__is_superuser=True)
+                        | TriggerQ(new__is_superuser=True)
+                    )
+                    & (
+                        TriggerQ(old__is_superuser__df=TriggerF("new__is_superuser"))
+                        | TriggerQ(old__is_active__df=TriggerF("new__is_active"))
+                    )
+                ),
+                func=TriggerFunc(SINGLETON_SUPERUSER),
+                level=Row,
+                name="trg_apiuser_superuser_update_singleton",
+                operation=Update,
+                timing=Deferred,
+                when=After,
+            ),
         )

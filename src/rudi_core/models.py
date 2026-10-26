@@ -21,7 +21,7 @@ class RudiModel(ApiModel):
     created_at = DateTimeField(db_default=Now(), default=now)
     updated_at = DateTimeField(db_default=Now(), default=now)
 
-    class Meta(ApiModel.Meta):
+    class Meta(ApiModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         indexes: Sequence[Index] = (
@@ -53,7 +53,7 @@ class RudiModel(ApiModel):
 class RudiAppendOnlyModel(RudiModel):
     updated_at = None
 
-    class Meta(RudiModel.Meta):
+    class Meta(RudiModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         indexes: Sequence[Index] = tuple(
@@ -71,7 +71,7 @@ class RudiAppendOnlyModel(RudiModel):
 
 @disjoint_base
 class RudiProtectedModel(RudiModel):
-    class Meta(RudiModel.Meta):
+    class Meta(RudiModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         triggers: Sequence[Trigger] = (
@@ -87,7 +87,7 @@ class RudiProtectedModel(RudiModel):
 class RudiSoftDeleteModel(RudiModel):
     is_active = BooleanField(db_default=True, default=True)
 
-    class Meta(RudiModel.Meta):
+    class Meta(RudiModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         triggers: Sequence[Trigger] = (

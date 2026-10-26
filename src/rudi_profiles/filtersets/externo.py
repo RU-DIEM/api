@@ -21,6 +21,6 @@ class ExternoProfileFilterSet(RudiProfileFilterSet):
 
     ocupacion = TypedLoweredFilter(enum=OcupacionTypes)
 
-    class Meta(RudiProfileFilterSet.Meta):
+    class Meta(RudiProfileFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = ExternoProfile

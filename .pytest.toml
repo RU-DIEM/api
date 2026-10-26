@@ -4,9 +4,15 @@
   addopts = [
     "--cov",
     "--cov-report=term-missing",
+    "--numprocesses=4",
     "--quiet",
     "--reuse-db",
   ]
 
   console_output_style = "count"
-  pythonpath           = ["src"]
+
+  filterwarnings = [
+    "ignore::dmr.throttling.backends.django_cache.UnsafeCacheBackendWarning",
+  ]
+
+  pythonpath = ["src"]

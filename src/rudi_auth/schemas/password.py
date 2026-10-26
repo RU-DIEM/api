@@ -5,7 +5,7 @@ from pydantic import AfterValidator, StringConstraints
 from api_auth.models import ApiUser
 from api_auth.schemas.types import Password
 from api_core.schemas.base import DTO
-from api_core.schemas.validators import empty_or_email
+from rudi_auth.schemas.validators import empty_or_email
 
 from .verificacion import VerificationToken
 

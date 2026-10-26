@@ -135,7 +135,7 @@ class IdentificadorUser(RudiProtectedModel):
         to=settings.AUTH_USER_MODEL,
     )
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=(

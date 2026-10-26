@@ -22,7 +22,7 @@ class RudiProfile(RudiProtectedModel):
 
     verificado_at = DateTimeField(db_default=Now(), default=now)
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         indexes: Sequence[Index] = (

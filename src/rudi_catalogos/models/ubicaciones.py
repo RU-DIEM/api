@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class Departamento(RudiSoftDeleteModel):
     nombre = CharField(max_length=30)
 
-    class Meta(RudiSoftDeleteModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 Upper(ImmutableUnaccent("nombre")),
@@ -33,7 +33,7 @@ class Municipio(RudiSoftDeleteModel):
 
     nombre = CharField(max_length=30)
 
-    class Meta(RudiSoftDeleteModel.Meta):
+    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 F("departamento"),

@@ -115,6 +115,10 @@
     },
   ]
 
+  [[project.extra.social]]
+    icon = "fontawesome/brands/github"
+    link = "https://github.com/jp-zuniga/backend-factory"
+
   [project.markdown_extensions]
     abbr       = {}
     admonition = {}

@@ -1,8 +1,7 @@
 from datetime import date
 from typing import TYPE_CHECKING, Final
 
-from django.db.transaction import atomic
-
+from api_core.seeding import register_structural
 from rudi_auth.models import PoliticaPrivacidad
 
 if TYPE_CHECKING:
@@ -34,8 +33,8 @@ POLITICAS: Final[Sequence[dict]] = (
 ########################################################################################
 
 
-@atomic
-def execute() -> None:
+@register_structural(app_label="rudiauth", name="politicas")
+def seed_politicas() -> None:
     for fields in POLITICAS:
         PoliticaPrivacidad.objects.get_or_create(
             version=fields["version"],

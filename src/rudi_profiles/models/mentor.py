@@ -82,7 +82,7 @@ class MentorProfile(RudiProfile):
         to=settings.AUTH_USER_MODEL,
     )
 
-    class Meta(RudiProfile.Meta):
+    class Meta(RudiProfile.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(nivel_academico__in=(*NivelesAcademicos.values, "")),
@@ -142,7 +142,7 @@ class MentorAreaExperiencia(RudiProtectedModel):
 
     is_main = BooleanField(db_default=False, default=False)
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 fields=["profile", "area"],
@@ -174,7 +174,7 @@ class MentorCertificacion(RudiProtectedModel):
 
     enlace_url = URLField(db_default="", default="", max_length=500)
 
-    class Meta(RudiProtectedModel.Meta):
+    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(nombre__len__gte=2),

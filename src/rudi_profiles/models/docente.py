@@ -32,7 +32,7 @@ class DocenteProfile(RudiProfile):
     nivel_academico = CharField(db_default="", default="", max_length=20)
     cargo = CharField(db_default="", default="", max_length=120)
 
-    class Meta(RudiProfile.Meta):
+    class Meta(RudiProfile.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(nivel_academico__in=(*NivelesAcademicos.values, "")),

@@ -21,16 +21,17 @@
 .envrc
 .gitignore
 
+.compose-ci.yml
 .coveragerc.toml
 .env.example
+.oxfmtrc.json
 .prek.toml
 .pytest.toml
 .request.json
 .ruff.toml
 
-compose.ci.yml
+.railway/
 compose.yml
-railway.json
 
 flake*
 justfile

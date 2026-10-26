@@ -44,7 +44,7 @@ class RudiEstadoFilterSet(FilterSet):
 
 
 class EstadoActividadFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoActividad
 
@@ -53,7 +53,7 @@ class EstadoActividadFilterSet(RudiEstadoFilterSet):
 
 
 class EstadoAsignacionMentorFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoAsignacionMentor
 
@@ -62,7 +62,7 @@ class EstadoAsignacionMentorFilterSet(RudiEstadoFilterSet):
 
 
 class EstadoConsentimientoFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoConsentimiento
 
@@ -71,7 +71,7 @@ class EstadoConsentimientoFilterSet(RudiEstadoFilterSet):
 
 
 class EstadoConstanciaFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoConstancia
 
@@ -80,7 +80,7 @@ class EstadoConstanciaFilterSet(RudiEstadoFilterSet):
 
 
 class EstadoInscripcionFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoInscripcion
 
@@ -89,7 +89,7 @@ class EstadoInscripcionFilterSet(RudiEstadoFilterSet):
 
 
 class EstadoParticipacionFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoParticipacion
 
@@ -98,7 +98,7 @@ class EstadoParticipacionFilterSet(RudiEstadoFilterSet):
 
 
 class EstadoPropuestaFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoPropuesta
 
@@ -107,6 +107,6 @@ class EstadoPropuestaFilterSet(RudiEstadoFilterSet):
 
 
 class EstadoRudiUserFilterSet(RudiEstadoFilterSet):
-    class Meta(RudiEstadoFilterSet.Meta):
+    class Meta(RudiEstadoFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         fields: Sequence[str] = ()
         model: type[Model] = EstadoRudiUser

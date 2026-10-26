@@ -35,7 +35,7 @@ class ExternoProfile(RudiProfile):
 
     carrera_externa = CharField(db_default="", default="", max_length=150)
 
-    class Meta(RudiProfile.Meta):
+    class Meta(RudiProfile.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(ocupacion__in=OcupacionTypes.values),
