@@ -163,8 +163,8 @@ class Migration(migrations.Migration):
                     ),
                     models.CheckConstraint(
                         condition=models.Q(
-                            models.Q(("width__isnull", True), ("height__isnull", True)),
-                            models.Q(("width__gt", 0), ("height__gt", 0)),
+                            models.Q(("height__isnull", True), ("width__isnull", True)),
+                            models.Q(("height__gt", 0), ("width__gt", 0)),
                             _connector="OR",
                         ),
                         name="chk_apimedia_dimensions",
