@@ -36,6 +36,8 @@ router: Final[Router] = Router(
     prefix="",
     tags=["rudi-auth"],
     urls=(
+        route_controller(ctrl=EmailConfirmController, endpoint="auth/email/confirm"),
+        route_controller(ctrl=EmailResendController, endpoint="auth/email/resend"),
         route_controller(ctrl=MeDetailController, endpoint="me"),
         route_controller(
             ctrl=MeConsentimientoController,
@@ -62,7 +64,6 @@ router: Final[Router] = Router(
         ),
         route_controller(ctrl=PoliticaVigenteController, endpoint="politicas/vigente"),
         route_controller(ctrl=RudiRegisterController, endpoint="registro"),
-        route_controller(ctrl=EmailConfirmController, endpoint="registro/confirmar"),
         route_controller(ctrl=RudiInviteController, endpoint="registro/invitacion"),
         route_controller(
             ctrl=InviteAcceptController,
@@ -73,7 +74,6 @@ router: Final[Router] = Router(
             ctrl=PasswordConfirmController,
             endpoint="registro/recuperar/confirmar",
         ),
-        route_controller(ctrl=EmailResendController, endpoint="registro/reenviar"),
         route_controller(
             ctrl=RudiUserListController,
             endpoint="usuarios",

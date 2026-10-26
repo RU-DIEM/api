@@ -53,7 +53,7 @@ address; only the latest message requested is ever redeemable.
 ## Confirming
 
 ```http
-POST /auth/email-confirm/ HTTP/1.1
+POST /auth/email/confirm/ HTTP/1.1
 ```
 
 ```json
@@ -73,7 +73,7 @@ unknown, expired, or already-spent token answers `400`:
 ## Requesting a new message
 
 ```http
-POST /auth/email-resend/ HTTP/1.1
+POST /auth/email/resend/ HTTP/1.1
 ```
 
 ```json

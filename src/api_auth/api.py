@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from dmr.routing import Router
 
 from api_auth.controllers.csrf import CsrfController
-from api_auth.controllers.email import EmailConfirmController, EmailResendController
 from api_auth.controllers.group import (
     GroupDetailController,
     GroupListAllController,
@@ -59,8 +58,6 @@ router: Final[Router] = Router(
             ApiUserListController,
             ApiUserListAllController,
             CsrfController,
-            EmailConfirmController,
-            EmailResendController,
             GroupDetailController,
             GroupListController,
             GroupListAllController,
