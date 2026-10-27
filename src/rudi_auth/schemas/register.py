@@ -2,8 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, StringConstraints
 
-from api_auth.models import ApiUser
-from api_auth.schemas.types import Email, Password, Username
+from api_auth.schemas.user import ApiUserBasePost, ApiUserBaseWrite
 from api_core.schemas.base import DTO
 from api_core.schemas.get import IsoDate, LaxEnum, RelatedId
 from rudi_catalogos.enums import Etnias, Generos, TallasCamisa
@@ -51,14 +50,11 @@ class RudiIdentificadorWrite(DTO):
 ########################################################################################
 
 
-class RudiRegisterPost(RudiPersonaWrite):
-    email: Email
+# the account half is the template's own registration body; the persona
+# half (and its stricter names) comes first so its fields win
 
-    username: Annotated[Username, AfterValidator(func=ApiUser.normalize_username)]
 
-    password1: Password
-    password2: Password
-
+class RudiRegisterPost(RudiPersonaWrite, ApiUserBasePost):
     acepta_politica: AceptaPolitica
 
     identificador: RudiIdentificadorWrite | None = None
@@ -67,11 +63,7 @@ class RudiRegisterPost(RudiPersonaWrite):
 ########################################################################################
 
 
-class RudiInvitePost(RudiPersonaWrite):
-    email: Email
-
-    username: Annotated[Username, AfterValidator(func=ApiUser.normalize_username)]
-
+class RudiInvitePost(RudiPersonaWrite, ApiUserBaseWrite):
     identificador: RudiIdentificadorWrite | None = None
 
 

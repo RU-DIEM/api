@@ -5,8 +5,8 @@ from typing import ClassVar
 from django.views.decorators.debug import sensitive_variables
 from dmr import Body, modify
 
+from api_auth.controllers.base import AuthController
 from api_auth.services.permissions import T_ADD_PERM
-from api_core.controllers.mixins import PublicControllerMixin, StrictThrottlingMixin
 from api_core.controllers.models import ModelController
 from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.services.operations import CreateOperation
@@ -22,10 +22,12 @@ from .base import RudiAuthController
 ########################################################################################
 
 
+# public and strictly throttled like the template's `RegisterController`,
+# whose route it takes over
+
+
 class RudiRegisterController(
-    PublicControllerMixin,
-    StrictThrottlingMixin,
-    RudiAuthController,
+    AuthController,
     ModelController[
         CustomPydanticFastSerializer,
         RudiUser,

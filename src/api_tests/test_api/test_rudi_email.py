@@ -1,4 +1,3 @@
-from datetime import timedelta
 from http import HTTPStatus
 
 import pytest
@@ -22,55 +21,6 @@ pytestmark = pytest.mark.django_db
 NEW_PASSWORD: str = "OTRA-CLAVE-456?"
 
 ########################################################################################
-
-
-@pytest.fixture
-def sent_plantillas(monkeypatch: pytest.MonkeyPatch) -> list[dict]:
-    captured: list[dict] = []
-
-    async def fake_send_plantilla(*, codigo: str, context: dict, to: str) -> None:  # ruff: ignore[unused-async]
-        captured.append({"codigo": codigo, "context": context, "to": to})
-
-    async def fake_read_duracion(codigo: str) -> timedelta:  # ruff: ignore[unused-async]
-        return timedelta(hours=2)
-
-    monkeypatch.setattr(
-        "rudi_auth.services.verificacion.send_plantilla",
-        fake_send_plantilla,
-    )
-
-    monkeypatch.setattr(
-        "rudi_auth.services.verificacion.read_duracion",
-        fake_read_duracion,
-    )
-
-    return captured
-
-
-@pytest.fixture
-def estado_inicial(db: None) -> EstadoRudiUser:
-    return EstadoRudiUser.objects.create(
-        codigo="pendiente",
-        etiqueta="Pendiente",
-        initial=True,
-    )
-
-
-@pytest.fixture
-def estado_activo(db: None) -> EstadoRudiUser:
-    return EstadoRudiUser.objects.create(
-        allow_ingreso=True,
-        codigo="activo",
-        etiqueta="Activo",
-    )
-
-
-@pytest.fixture
-def estado_suspendido(db: None) -> EstadoRudiUser:
-    return EstadoRudiUser.objects.create(
-        codigo="suspendido",
-        etiqueta="Suspendido",
-    )
 
 
 def make_persona(username: str, estado: EstadoRudiUser) -> RudiUser:

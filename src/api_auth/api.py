@@ -17,7 +17,6 @@ from api_auth.controllers.permission import (
 )
 from api_auth.controllers.profile import ProfileController
 from api_auth.controllers.refresh import MobileRefreshController, WebRefreshController
-from api_auth.controllers.register import RegisterController
 from api_auth.controllers.twofactor import (
     MobileTwoFactorController,
     TwoFactorConfirmController,
@@ -70,7 +69,6 @@ router: Final[Router] = Router(
             PermissionListController,
             PermissionListAllController,
             ProfileController,
-            RegisterController,
             TwoFactorConfirmController,
             TwoFactorController,
             TwoFactorDisableController,

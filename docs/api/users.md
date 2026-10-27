@@ -29,8 +29,8 @@ authenticate afterward.
 
 Two different endpoints create accounts, with different permission
 requirements and a different write schema. `POST /auth/register/` is
-public registration (see [Email confirmation](email-confirmation.md)); the
-client picks a `group` from a fixed, non-privileged choice (`"Cliente"`),
+public registration (see [Email confirmation](email-confirmation.md)); it
+creates the persona alongside the account, always in the `"Cliente"` group,
 and there is no way to self-assign staff groups or explicit permissions
 through this endpoint. `POST /auth/user/` is staff-only creation, requiring
 the `add` permission on the user model, and accepts arbitrary

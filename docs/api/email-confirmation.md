@@ -17,17 +17,20 @@ POST /auth/register/ HTTP/1.1
 {
   "username": "asdf",
   "email": "asdf@example.com",
+  "first_name": "Ana",
+  "last_name": "Pérez",
   "password1": "asdf123!",
   "password2": "asdf123!",
-  "group": "Cliente"
+  "telefono": "+505 8123 4567",
+  "acepta_politica": true
 }
 ```
 
-Creates the account and answers `201` with its data immediately, since the
-row exists and can already be looked up, but `email_verified_at` is
-`null`. If email verification is required and the account has an email
-address, logging in is refused with `403` until that address is
-confirmed. Staff accounts are created separately, through
+Creates the account (in the `"Cliente"` group), its persona, and the
+consent to the current privacy policy, and answers `201` with the persona.
+`user.email_verified_at` is `null` and the persona starts in its initial
+state, which does not allow logging in, so login is refused until the
+address is confirmed. Confirming moves the persona to the active state. Staff accounts are created separately, through
 [Users and permissions](users.md#creating-users), and go through the same
 confirmation state.
 

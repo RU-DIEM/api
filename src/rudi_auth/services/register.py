@@ -2,11 +2,12 @@ from typing import TYPE_CHECKING, Final, override
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.db.transaction import atomic
 from django.utils.timezone import now
 from django.views.decorators.debug import sensitive_variables
 
-from api_auth.enums import VerificationPurposes
+from api_auth.enums import ApiUserTypes, VerificationPurposes
 from api_auth.services.user import check_password_match, check_password_strength
 from api_core.services.operations import CreateOperation
 from api_exceptions.enums import ConflictErrorTypes, RequestScopes
@@ -42,8 +43,7 @@ PERSONA_FIELDS: Final[frozenset[str]] = frozenset({
     "fecha_nacimiento",
     "genero",
     "talla",
-    "telefono_numero",
-    "telefono_pais",
+    "telefono",
 })
 
 ########################################################################################
@@ -129,6 +129,11 @@ class RudiUserCreateOperation[Get: DTO, Post: DTO](CreateOperation[Get, Post]):
             is_active=False,
             last_name=data["last_name"],
         )
+
+        # the same client group the template's registration assigns. Not through
+        # `exec_m2m_post`: it opens its own retrying transaction, which cannot
+        # nest inside the one that also writes the persona
+        cuenta.groups.set(Group.objects.filter(name=ApiUserTypes.CLIENT.value))  # ty: ignore[unresolved-attribute]
 
         user: RudiUser = RudiUser.objects.create(
             estado=estado,
