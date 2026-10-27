@@ -2,14 +2,20 @@ from typing import TYPE_CHECKING, Final, override
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.db.transaction import atomic
 from django.utils.timezone import now
 from django.views.decorators.debug import sensitive_variables
 
-from api_auth.enums import ApiUserTypes, VerificationPurposes
-from api_auth.services.user import check_password_match, check_password_strength
+from api_auth.enums import VerificationPurposes
+from api_auth.models import ApiUser
+from api_auth.schemas.user import ApiUserBaseWrite
+from api_auth.services.user import (
+    check_password_match,
+    check_password_strength,
+    dump_user_post_data,
+)
 from api_core.services.operations import CreateOperation
+from api_core.services.operations.m2m import write_m2m_post
 from api_exceptions.enums import ConflictErrorTypes, RequestScopes
 from api_exceptions.errors import ConflictError
 from api_utils.db import set_immediate_constraints
@@ -20,7 +26,6 @@ from rudi_auth.models import (
     PoliticaPrivacidad,
     RudiUser,
 )
-from rudi_auth.schemas.register import RudiRegisterPost
 from rudi_estados.enums import InputSourceTypes
 
 from .estados import (
@@ -31,12 +36,17 @@ from .politica import load_politica_vigente
 from .verificacion import issue_codigo
 
 if TYPE_CHECKING:
-    from api_auth.models import ApiUser
     from api_core.schemas.base import DTO
     from api_utils.types import DatabaseModel
     from rudi_estados.models import EstadoConsentimiento, EstadoRudiUser
 
 ########################################################################################
+
+CUENTA_FIELDS: Final[frozenset[str]] = frozenset({
+    *ApiUserBaseWrite.model_fields,
+    "groups",
+    "password",
+})
 
 PERSONA_FIELDS: Final[frozenset[str]] = frozenset({
     "etnia",
@@ -81,11 +91,19 @@ class RudiUserCreateOperation[Get: DTO, Post: DTO](CreateOperation[Get, Post]):
     @override
     @sensitive_variables()
     def dump(self, dto: Post) -> dict:
-        if isinstance(dto, RudiRegisterPost):
+        # the account half is dumped exactly as the template's registration
+        # dumps it: same checks, same groups, same password handling
+        if dto.password1 is not None:  # ty: ignore[unresolved-attribute]
             check_password_match(dto)
             check_password_strength(dto)
 
-        return dto.model_dump()
+        data: dict = dump_user_post_data(dto)
+
+        return {
+            "cuenta": {name: data[name] for name in CUENTA_FIELDS},
+            "identificador": data.get("identificador"),
+            "persona": {name: data[name] for name in PERSONA_FIELDS if name in data},
+        }
 
     @override
     @sensitive_variables()
@@ -117,29 +135,28 @@ class RudiUserCreateOperation[Get: DTO, Post: DTO](CreateOperation[Get, Post]):
         estado: EstadoRudiUser,
         politica: PoliticaPrivacidad,
     ) -> RudiUser:
-        identificador: dict | None = data.get("identificador")
+        identificador: dict | None = data["identificador"]
 
-        check_cuenta_disponible(email=data["email"], username=data["username"])
-
-        cuenta: ApiUser = get_user_model().objects.create_user(
-            data["username"],
-            data["email"],
-            data.get("password1"),
-            first_name=data["first_name"],
-            is_active=False,
-            last_name=data["last_name"],
+        check_cuenta_disponible(
+            email=data["cuenta"]["email"],
+            username=data["cuenta"]["username"],
         )
 
-        # the same client group the template's registration assigns. Not through
-        # `exec_m2m_post`: it opens its own retrying transaction, which cannot
-        # nest inside the one that also writes the persona
-        cuenta.groups.set(Group.objects.filter(name=ApiUserTypes.CLIENT.value))  # ty: ignore[unresolved-attribute]
+        # the template's own account creation, minus its retrying transaction,
+        # so the account commits (or not) together with the persona. Whether
+        # it may log in follows the persona's state (`trg_rudiuser_sync_active`)
+        cuenta: ApiUser = write_m2m_post(  # ty: ignore[invalid-assignment]
+            "groups",
+            data=data["cuenta"],
+            qs=ApiUser.objects.all(),
+            user=True,
+        )
 
         user: RudiUser = RudiUser.objects.create(
             estado=estado,
             origen=self.origen,
             user=cuenta,
-            **{name: data[name] for name in PERSONA_FIELDS if name in data},
+            **data["persona"],
         )
 
         ConsentimientoDatos.objects.create(
