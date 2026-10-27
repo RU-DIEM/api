@@ -11,8 +11,10 @@ from django.db.models import (
     Index,
     OneToOneField,
     Q,
+    UniqueConstraint,
 )
 from pgtrigger import After, Before, Insert, ReadOnly, Trigger, Update
+from phonenumber_field.modelfields import PhoneNumberField
 
 from api_utils.db import track_table
 from api_utils.strings import normalize_trigger
@@ -24,7 +26,6 @@ from rudi_estados.models import EstadoRudiUser
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from django.db.models import UniqueConstraint
 
 ########################################################################################
 
@@ -113,7 +114,7 @@ class RudiUser(RudiProtectedModel):
 
     fecha_nacimiento = DateField(null=True)
 
-    telefono = CharField(db_default="", default="", max_length=20)
+    telefono = PhoneNumberField(db_default="", default="", region="NI")
 
     genero = CharField(db_default="", default="", max_length=20)
     etnia = CharField(db_default="", default="", max_length=20)
@@ -138,6 +139,15 @@ class RudiUser(RudiProtectedModel):
             CheckConstraint(
                 condition=Q(talla__in=(*TallasCamisa.values, "")),
                 name="chk_%(class)s_talla",
+            ),
+            CheckConstraint(
+                condition=Q(telefono="") | Q(telefono__regex=r"^\+[1-9]\d{1,14}$"),
+                name="chk_%(class)s_telefono_e164",
+            ),
+            UniqueConstraint(
+                condition=(~Q(telefono="")),
+                fields=["telefono"],
+                name="unq_%(class)s_telefono",
             ),
         )
 

@@ -14,6 +14,7 @@
     "django-pglock>=1.8.0",
     "django-pgtransaction>=2.1.0",
     "django-pgtrigger>=4.17.0",
+    "django-phonenumber-field[phonenumbers]>=8.5.0",
     "granian>=2.8.3",
     "httpx>=0.28.1",
     "phonenumbers>=9.0.39",

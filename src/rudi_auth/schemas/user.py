@@ -2,7 +2,6 @@ from datetime import date, datetime
 from typing import Annotated, Literal
 
 from pydantic import StringConstraints
-from pydantic_extra_types.phone_numbers import PhoneNumber, PhoneNumberValidator
 
 from api_auth.schemas.user import ApiUserInlineGet
 from api_core.schemas.base import DTO
@@ -18,16 +17,10 @@ from rudi_catalogos.enums import Etnias, Generos, TallasCamisa
 from rudi_estados.enums import InputSourceTypes
 from rudi_estados.schemas import EstadoRudiUserGet
 
+from .types import TelefonoNI
+
 ########################################################################################
 
-type Telefono = (
-    Annotated[
-        PhoneNumber,
-        PhoneNumberValidator(default_region="NI", number_format="INTERNATIONAL"),
-        StringConstraints(max_length=20),
-    ]
-    | Literal[""]
-)
 
 ########################################################################################
 
@@ -47,7 +40,7 @@ class RudiUserGet(RudiUserInlineGet):
     estado: EstadoRudiUserGet
 
     fecha_nacimiento: date | None
-    telefono: Telefono
+    telefono: TelefonoNI
 
     genero: Generos | Literal[""]
     etnia: Etnias | Literal[""]
@@ -62,7 +55,7 @@ class RudiUserGet(RudiUserInlineGet):
 class RudiUserWrite(DTO):
     fecha_nacimiento: IsoDate | None = None
 
-    telefono: Telefono = ""
+    telefono: Annotated[TelefonoNI, StringConstraints(max_length=20)] = ""
 
     genero: LaxEnum[Generos] | Literal[""] = ""
     etnia: LaxEnum[Etnias] | Literal[""] = ""

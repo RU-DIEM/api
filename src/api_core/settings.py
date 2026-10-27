@@ -196,3 +196,5 @@ PGTRANSACTION_RETRY_EXCEPTIONS: Final[Sequence[type[OperationalError]]] = (
     DeadlockDetected,
     SerializationFailure,
 )
+
+PHONENUMBER_DB_FORMAT: Final[str] = "E164"
