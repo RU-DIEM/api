@@ -108,6 +108,33 @@ def exec_m2m_post(
     qs: QuerySet,
     user: bool = False,
 ) -> DatabaseModel:
+    return write_m2m_post(*attrs, data=data, qs=qs, user=user)
+
+
+def write_m2m_post(
+    *attrs: str,
+    data: dict,
+    qs: QuerySet,
+    user: bool = False,
+) -> DatabaseModel:
+    """
+    Create a row and its many-to-many relations, without a transaction of its own.
+
+    `exec_m2m_post` wraps this in a retrying transaction. Call it directly
+    when the row is one write among several that must commit together,
+    since a retrying transaction cannot nest inside another one.
+
+    Args:
+        attrs: The names of the many-to-many fields in *data*.
+        data: The row's values, relations included.
+        qs: A queryset over the model to create.
+        user: Whether to create the row through `create_user`.
+
+    Returns:
+        The created row, reloaded through *qs*.
+
+    """
+
     payload, extracted = split_payload(data, attrs)
 
     m2m_inputs: dict[str, Sequence] = {
