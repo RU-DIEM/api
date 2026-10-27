@@ -1,20 +1,25 @@
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
-
-from dmr.test import DMRClient
 
 from api_auth.enums import ApiUserTypes
 from api_auth.models import ApiUser
 from api_tests.conftest import PASSWORD
 from api_tests.helpers import PatchedHttpResponse, assert_field_error, route
 from rudi_auth.models import ConsentimientoDatos, RudiUser
-from rudi_estados.models import EstadoRudiUser
+from rudi_estados.enums import InputSourceTypes
+from rudi_estados.models import EstadoConsentimiento
+
+if TYPE_CHECKING:
+    from dmr.test import DMRClient
+
+    from rudi_estados.models import EstadoRudiUser
 
 ########################################################################################
 
-# rudi's counterparts of the template's registration tests, which `src/conftest.py`
-# deselects because `/auth/register/` now takes rudi's body
+# rudi's counterparts of the template's registration tests, which
+# `rudi_tests/deselect.py` deselects because `/auth/register/` now takes rudi's body
 
 pytestmark = [
     pytest.mark.django_db,
@@ -29,6 +34,7 @@ pytestmark = [
 ]
 
 TELEFONO: str = "+505 8123 4567"
+TELEFONO_E164: str = "+50581234567"
 
 ########################################################################################
 
@@ -70,7 +76,7 @@ def test_register_is_public_and_creates_the_persona(
     assert payload["user"]["username"] == "registrado"
     assert payload["user"]["email"] == "registrado@pruebas.example.com"
     assert payload["estado"]["id"] == str(estado_inicial.pk)
-    assert payload["telefono"] == TELEFONO
+    assert payload["telefono"] == TELEFONO_E164
 
     persona: RudiUser = RudiUser.objects.select_related("user").get(
         user__username="registrado",
@@ -161,6 +167,34 @@ def test_register_rejects_the_email_of_a_pending_persona(
     assert assert_field_error(response, "body.email")
 
 
+def test_register_rejects_a_non_client_group(dmr_client: DMRClient) -> None:
+    response: PatchedHttpResponse = register(dmr_client, group=ApiUserTypes.ADMIN.value)
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert_field_error(response, "body.group")
+
+
+def test_register_stores_local_phones_in_e164(dmr_client: DMRClient) -> None:
+    register(dmr_client, telefono="8123 4567")
+
+    persona: RudiUser = RudiUser.objects.get(user__username="registrado")
+
+    assert persona.telefono == TELEFONO_E164
+
+
+def test_register_rejects_a_phone_already_in_use(dmr_client: DMRClient) -> None:
+    register(dmr_client)
+
+    response: PatchedHttpResponse = register(
+        dmr_client,
+        email="otro@pruebas.example.com",
+        username="otro",
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert assert_field_error(response, "body.telefono")
+
+
 def test_register_rejects_invalid_email(
     dmr_client: DMRClient,
 ) -> None:
@@ -217,3 +251,62 @@ def test_registration_waits_for_the_confirmed_address(
     )
 
     assert after.status_code == HTTPStatus.OK
+
+
+########################################################################################
+
+
+@pytest.fixture
+def consentimiento_inicial_sistema(db: None) -> EstadoConsentimiento:
+    return EstadoConsentimiento.objects.create(
+        codigo="otorgado_sistema",
+        etiqueta="Otorgado por el sistema",
+        initial=True,
+        source=InputSourceTypes.MODERN,
+    )
+
+
+def test_invite_creates_a_client_without_a_password(
+    admin_client: DMRClient,
+    consentimiento_inicial_sistema: EstadoConsentimiento,
+    sent_plantillas: list[dict],
+) -> None:
+    response: PatchedHttpResponse = admin_client.post(
+        route("auth-register-invite"),
+        data={
+            "email": "invitado@pruebas.example.com",
+            "first_name": "Invitado",
+            "last_name": "Usuario",
+            "telefono": "",
+            "username": "invitado",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+
+    user: ApiUser = ApiUser.objects.get(username="invitado")
+
+    assert not user.has_usable_password()
+    assert [group.name for group in user.groups.all()] == [  # ty: ignore[unresolved-attribute]
+        ApiUserTypes.CLIENT.value,
+    ]
+
+    assert sent_plantillas[-1]["codigo"] == "invitacion_administrativa"
+
+
+def test_invite_takes_no_password(admin_client: DMRClient) -> None:
+    response: PatchedHttpResponse = admin_client.post(
+        route("auth-register-invite"),
+        data={
+            "email": "invitado@pruebas.example.com",
+            "first_name": "Invitado",
+            "last_name": "Usuario",
+            "password1": PASSWORD,
+            "password2": PASSWORD,
+            "telefono": "",
+            "username": "invitado",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert_field_error(response, "body.password1")

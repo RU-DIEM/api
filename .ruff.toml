@@ -36,7 +36,7 @@ preview = true
   [lint.per-file-ignores]
     "**/api_core/**" = ["private-member-access"]
 
-    "**/api_tests/**" = [
+    "**/*_tests/**" = [
       "assert",
       "hardcoded-password-func-arg",
       "hardcoded-password-string",

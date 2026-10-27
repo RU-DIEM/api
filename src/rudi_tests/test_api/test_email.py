@@ -1,9 +1,9 @@
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 
 from asgiref.sync import async_to_sync
-from dmr.test import DMRClient
 
 from api_auth.enums import VerificationPurposes
 from api_auth.models import ApiUser, VerificationCode
@@ -12,7 +12,11 @@ from api_tests.helpers import PatchedHttpResponse, route
 from rudi_auth.models import RudiUser
 from rudi_auth.services.verificacion import issue_codigo
 from rudi_estados.enums import InputSourceTypes
-from rudi_estados.models import EstadoRudiUser
+
+if TYPE_CHECKING:
+    from dmr.test import DMRClient
+
+    from rudi_estados.models import EstadoRudiUser
 
 ########################################################################################
 
@@ -156,19 +160,21 @@ def test_password_reset_keeps_the_code_when_the_password_is_rejected(
     persona: RudiUser,
     sent_plantillas: list[dict],
 ) -> None:
-    token = issue(dmr_client, sent_plantillas, "registro-recuperar", email_of(persona))
+    token = issue(
+        dmr_client, sent_plantillas, "auth-register-recover", email_of(persona)
+    )
 
     assert sent_plantillas[-1]["codigo"] == "recuperacion_password"
 
     weak: PatchedHttpResponse = dmr_client.post(
-        route("registro-recuperar-confirmar"),
+        route("auth-register-recover-confirm"),
         data={"password1": "123", "password2": "123", "token": token},
     )
 
     assert weak.status_code == HTTPStatus.BAD_REQUEST
 
     response: PatchedHttpResponse = dmr_client.post(
-        route("registro-recuperar-confirmar"),
+        route("auth-register-recover-confirm"),
         data={"password1": NEW_PASSWORD, "password2": NEW_PASSWORD, "token": token},
     )
 
@@ -195,7 +201,7 @@ def test_accepting_an_invitation_verifies_and_activates(
     assert sent_plantillas[-1]["codigo"] == "invitacion_administrativa"
 
     response: PatchedHttpResponse = dmr_client.post(
-        route("registro-invitacion-aceptar"),
+        route("auth-register-invite-accept"),
         data={"password1": NEW_PASSWORD, "password2": NEW_PASSWORD, "token": token},
     )
 
