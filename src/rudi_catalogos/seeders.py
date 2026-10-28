@@ -34,6 +34,13 @@ PARAMETROS: Final[Sequence[dict]] = (
         "valor": "P7D",
     },
     {
+        "codigo": "vigencia.propuesta_mentoria",
+        "descripcion": "Plazo para responder una propuesta de mentoría.",
+        "grupo": ParametroGrupoTypes.VIGENCIA,
+        "tipo": ParametroTypes.TIME,
+        "valor": "P7D",
+    },
+    {
         "codigo": "registro.dominio_institucional",
         "descripcion": "Dominio de correo exigido a los estudiantes de la UAM.",
         "grupo": ParametroGrupoTypes.REGISTRO,

@@ -4,6 +4,7 @@ from dmr.routing import Router
 
 from api_core.controllers.routers import route_controller
 from rudi_auth.controllers import (
+    AccesoDatoPersonalListController,
     ConsentimientoDatosDetailController,
     ConsentimientoRetiroController,
     EmailConfirmController,
@@ -101,6 +102,13 @@ router: Final[Router] = Router(
             instance_param=("uuid", "user_id"),
             suffix="consentimiento-retiro",
             tail="consentimiento/retiro",
+        ),
+        route_controller(
+            ctrl=AccesoDatoPersonalListController,
+            endpoint="usuarios",
+            instance_param=("uuid", "user_id"),
+            suffix="accesos-list",
+            tail="accesos",
         ),
         route_controller(
             ctrl=IdentificadorUserListController,

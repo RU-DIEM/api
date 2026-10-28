@@ -6,6 +6,7 @@ from django.db.transaction import atomic
 from api_core.services.operations import CreateOperation
 from api_utils.db import set_immediate_constraints
 from rudi_profiles.models import EstudianteCarrera, EstudianteProfile
+from rudi_profiles.services.base import activar_persona
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -42,6 +43,8 @@ class EstudianteProfileCreateOperation[Get: DTO, Post: DTO](CreateOperation[Get,
                 nivel=carrera["nivel"],
                 profile=profile,
             )
+
+        activar_persona(data["user"])
 
         set_immediate_constraints()
 

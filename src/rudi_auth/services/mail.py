@@ -1,11 +1,10 @@
 from typing import TYPE_CHECKING
 
 from asgiref.sync import sync_to_async
-from django.core.mail import send_mail
-from django.db.transaction import on_commit
 
 from api_exceptions.errors import BadRequestError, NotFoundError
 from rudi_catalogos.models import PlantillaMensaje
+from rudi_notificaciones.services import encolar
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -58,16 +57,20 @@ async def load_plantilla(codigo: str) -> PlantillaMensaje:
 
 
 async def send_plantilla(codigo: str, context: dict, to: str) -> None:
+    """
+    Render a template and queue the message (rudi_notificaciones).
+
+    It is sent once the caller's transaction commits, and retried by
+    `enviar_pendientes` if the provider fails.
+    """
+
     plantilla: PlantillaMensaje = await load_plantilla(codigo)
 
     asunto, cuerpo = render_plantilla(plantilla, context)
 
-    await sync_to_async(func=on_commit)(
-        lambda: send_mail(
-            fail_silently=True,
-            from_email=None,
-            message=cuerpo,
-            recipient_list=[to],
-            subject=asunto,
-        ),
+    await sync_to_async(func=encolar)(
+        asunto=asunto,
+        cuerpo=cuerpo,
+        destinatario=to,
+        plantilla=plantilla,
     )

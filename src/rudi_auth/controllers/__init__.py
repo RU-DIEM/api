@@ -31,6 +31,7 @@ from .register import (
     RudiRegisterController,
 )
 from .user import (
+    AccesoDatoPersonalListController,
     RudiUserDetailController,
     RudiUserListAllController,
     RudiUserListController,
@@ -42,6 +43,7 @@ if TYPE_CHECKING:
 ########################################################################################
 
 __all__: Sequence[str] = (
+    "AccesoDatoPersonalListController",
     "ConsentimientoDatosDetailController",
     "ConsentimientoRetiroController",
     "EmailConfirmController",

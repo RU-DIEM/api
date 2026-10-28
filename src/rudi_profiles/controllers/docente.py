@@ -9,7 +9,6 @@ from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.schemas.pagination import Paginated
 from api_core.services.operations import (
     CreateOperation,
-    ForeignKeyCreateOperation,
     ForeignKeyUpdateOperation,
     UpdateOperation,
 )
@@ -24,6 +23,7 @@ from rudi_profiles.schemas.docente import (
     DocenteProfilePost,
     DocenteProfilePut,
 )
+from rudi_profiles.services.base import ProfileCreateOperation
 
 ########################################################################################
 
@@ -54,7 +54,7 @@ class DocenteProfileListController(
         Paginated[DocenteProfileGet],
     ],
 ):
-    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
+    create_operation: ClassVar[type[CreateOperation]] = ProfileCreateOperation
 
 
 ########################################################################################

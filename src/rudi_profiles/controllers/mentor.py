@@ -20,7 +20,6 @@ from api_core.schemas.path import UuidInstancePath
 from api_core.services.operations import (
     CreateOperation,
     FlatRetrieveOperation,
-    ForeignKeyCreateOperation,
     ForeignKeyUpdateOperation,
     UpdateOperation,
 )
@@ -53,6 +52,7 @@ from rudi_profiles.schemas.mentor import (
     MentorProfilePost,
     MentorProfilePut,
 )
+from rudi_profiles.services.base import ProfileCreateOperation
 from rudi_profiles.services.mentor import confirmar_mentor
 
 ########################################################################################
@@ -84,7 +84,7 @@ class MentorProfileListController(
         Paginated[MentorProfileGet],
     ],
 ):
-    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
+    create_operation: ClassVar[type[CreateOperation]] = ProfileCreateOperation
 
 
 ########################################################################################
