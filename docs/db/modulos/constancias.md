@@ -188,7 +188,7 @@ Puente que registra qué participaciones ampara cada constancia.
 
 |                              Trigger                              |         Evento         | Momento  | Nivel |                                               Regla                                                |        Origen        |
 | :---------------------------------------------------------------: | :--------------------: | :------: | :---: | :------------------------------------------------------------------------------------------------: | :------------------: |
-|        `trg_constanciaparticipacion_participacion_valida`         |        `INSERT`        | `BEFORE` | `ROW` | La participación es de la misma persona, está validada, no anulada, y su estado `allow_constancia` |   [`RN-15`][rn-15]   |
+|               `trg_constanciaparticipacion_amparo`                |        `INSERT`        | `BEFORE` | `ROW` | La participación es de la misma persona, está validada, no anulada, y su estado `allow_constancia` |   [`RN-15`][rn-15]   |
 | `trg_participacion_invalidar_constancias` (sobre `participacion`) | `UPDATE OF anulada_at` | `AFTER`  | `ROW` |                             Anula las constancias vivas que la amparan                             | [`RF-A-29`][rf-a-29] |
 
 La relación es de muchos a muchos: [`RF-A-35`][rf-a-35] contempla el

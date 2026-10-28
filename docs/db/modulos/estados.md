@@ -323,11 +323,11 @@ convierten los atributos semánticos en garantías. Los instancia
 `estado_lifecycle_triggers(...)` (`rudi_estados/triggers.py`); el detalle está
 en [`Triggers`][triggers-estado].
 
-|             Nombre              |            Evento             | Momento  | Nivel |                                 Regla                                  |     Origen     |
-| :-----------------------------: | :---------------------------: | :------: | :---: | :--------------------------------------------------------------------: | :------------: |
-|   `trg_<tabla>_estado_activo`   |     `INSERT`<br/>`UPDATE`     | `BEFORE` | `ROW` |               El estado asignado debe estar `is_active`                | [`D-18`][d-18] |
-|  `trg_<tabla>_estado_terminal`  | `UPDATE` con cambio de estado | `BEFORE` | `ROW` |     Una fila cuyo estado actual es `terminal` no cambia de estado      | [`D-08`][d-08] |
-| `trg_<tabla>_transicion_valida` | `UPDATE` con cambio de estado | `BEFORE` | `ROW` | El par debe existir activo para el actor de `rudi_actor()`, si hay uno | [`D-10`][d-10] |
+|             Nombre              |            Evento             | Momento  | Nivel |                                          Regla                                          |     Origen     |
+| :-----------------------------: | :---------------------------: | :------: | :---: | :-------------------------------------------------------------------------------------: | :------------: |
+|   `trg_<tabla>_estado_activo`   |     `INSERT`<br/>`UPDATE`     | `BEFORE` | `ROW` | Un estado se asigna solo si está `is_active`; las filas que ya lo tienen no se bloquean | [`D-18`][d-18] |
+|  `trg_<tabla>_estado_terminal`  | `UPDATE` con cambio de estado | `BEFORE` | `ROW` |              Una fila cuyo estado actual es `terminal` no cambia de estado              | [`D-08`][d-08] |
+| `trg_<tabla>_transicion_valida` | `UPDATE` con cambio de estado | `BEFORE` | `ROW` |         El par debe existir activo para el actor de `rudi_actor()`, si hay uno          | [`D-10`][d-10] |
 
 [auditoria]: ../convenciones.md#auditoria-por-tabla
 [catalogos]: catalogos.md

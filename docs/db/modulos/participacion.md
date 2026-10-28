@@ -104,6 +104,7 @@ CHECK (posicion_espera IS NULL OR posicion_espera > 0)
 | `trg_inscripcion_transicion_valida` |                  `UPDATE` con cambio de estado                  | `BEFORE` | `ROW` |        El par debe estar en `transicion_estado_inscripcion` para el actor         |    [`D-10`][d-10]    |
 | `trg_inscripcion_estado_coherente`  | `INSERT`<br/>`UPDATE OF estado_id, cerrada_at, posicion_espera` | `BEFORE` | `ROW` | Estado `terminal` ⇔ `cerrada_at`; en lista de espera, el estado no `consume_cupo` |    [`D-09`][d-09]    |
 |      `trg_inscripcion_motivo`       |                      `INSERT`<br/>`UPDATE`                      | `BEFORE` | `ROW` |                        El motivo es de un ámbito de cierre                        | [Familia][t-motivo]  |
+|        `trg_readonly_origen`        |  `UPDATE OF actividad_id, is_excepcion_cupo, origen, user_id`   | `BEFORE` | `ROW` |       La persona, la actividad, el origen y la excepción de cupo no cambian       |    [`D-08`][d-08]    |
 |  `trg_inscripcion_ventana_abierta`  |                            `INSERT`                             | `BEFORE` | `ROW` | Con origen `usuario`, la actividad `allow_inscripcion` y la ventana está abierta  | [`RF-P-16`][rf-p-16] |
 | `trg_inscripcion_cierre_bloqueado`  |                     `UPDATE OF cerrada_at`                      | `BEFORE` | `ROW` |             Rechaza cerrar si existe participación validada asociada              | [`RF-P-19`][rf-p-19] |
 |     `trg_inscripcion_contador`      |               `INSERT`<br/>`UPDATE OF estado_id`                | `AFTER`  | `ROW` |   Ajusta `actividad.inscritos_activos` según `consume_cupo`, salvo excepciones    |   [`RN-11`][rn-11]   |
@@ -399,6 +400,7 @@ institucional falsa sobre una persona.
 [t-estado]: ../triggers.md#ciclo-de-vida-del-estado
 [t-motivo]: ../triggers.md#motivo-de-lista-cerrada
 [t-snapshot]: ../triggers.md#derivacion-de-snapshot
+[d-08]: ../decisiones.md#d-08
 [d-09]: ../decisiones.md#d-09
 [d-10]: ../decisiones.md#d-10
 [d-11]: ../decisiones.md#d-11

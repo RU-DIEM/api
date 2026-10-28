@@ -74,6 +74,18 @@ cliente que alguien escriba. Una que vive en el trigger, no.
 |  Idempotente bajo reintento  |                                                Un `AFTER` que escribe en otra tabla usa `ON CONFLICT DO NOTHING` o compara antes de escribir                                                |
 |    Declarado en su módulo    | Un trigger sobre una tabla de otra app se registra con `pgtrigger.register(...)(Modelo)` desde la app que conoce la regla, para que el grafo de dependencias siga siendo de un solo sentido |
 
+Dos reglas más que aprendió la implementación:
+
+- **Marca de tiempo con `clock_timestamp()`**, no con `now()`, en todo trigger
+  que fija un instante (`publicada_at`, `respondida_at`, `finalizada_at`,
+  `clasificada_at`). `now()` es el inicio de la transacción, y un instante
+  anterior a otro que la aplicación ya escribió en la misma transacción viola
+  los `CHECK` de orden temporal.
+- **Actuar como `sistema`** cuando un trigger mueve el estado de otra tabla: la
+  promoción de la lista de espera y el cierre de inscripciones de una actividad
+  cancelada usan `como_actor('sistema', ...)` (`rudi_core/triggers.py`), que fija
+  y restaura `rudi.actor` alrededor de la escritura.
+
 ### Dereferenciar una llave foránea
 
 Las llaves foráneas del modelo son `DEFERRABLE INITIALLY DEFERRED`, así que un
@@ -130,7 +142,9 @@ nunca se compara contra `codigo`.
 | `trg_<tabla>_estado_coherente`  |     Los atributos semánticos del estado concuerdan con las marcas de la fila     |              Por tabla, con su propia regla              |
 
 Los tres primeros son la misma plantilla instanciada con el nombre del
-catálogo. El cuarto es específico: es donde cada tabla declara qué significa
+catálogo. `trg_<tabla>_estado_activo` solo comprueba al **asignar** un estado
+(al insertar o al cambiarlo): desactivar un estado impide que lo estrenen filas
+nuevas, pero no bloquea la edición de las que ya están en él. El cuarto es específico: es donde cada tabla declara qué significa
 para ella estar en un estado (una participación en un estado `efectiva` tiene
 `validada_at`; una asignación en un estado `require_motivo` tiene `motivo_id`).
 
@@ -153,7 +167,7 @@ IF NEW.motivo_id IS NOT NULL THEN
     IF NOT motivo.is_active THEN
         RAISE check_violation USING COLUMN = 'motivo_id', MESSAGE = 'El motivo está desactivado.';
     END IF;
-    IF motivo.ambito <> '<ambito>' THEN
+    IF motivo.ambito NOT IN (<ambitos>) THEN
         RAISE check_violation USING COLUMN = 'motivo_id', MESSAGE = 'El motivo no pertenece al ámbito de esta acción.';
     END IF;
     IF motivo.require_descripcion AND length(NEW.<descripcion>) = 0 THEN
@@ -162,15 +176,22 @@ IF NEW.motivo_id IS NOT NULL THEN
 END IF;
 ```
 
-|        Tabla        |         `ambito`          | Columna de descripción |
-| :-----------------: | :-----------------------: | :--------------------: |
-|     `actividad`     |  `cancelacion_actividad`  |  `motivo_descripcion`  |
-|    `inscripcion`    | `cancelacion_inscripcion` |  `motivo_descripcion`  |
-|   `participacion`   | `anulacion_participacion` |  `motivo_descripcion`  |
-| `asignacion_mentor` |    `rechazo_mentoria`     |  `motivo_descripcion`  |
-|    `constancia`     |  `anulacion_constancia`   |  `motivo_descripcion`  |
-| `movimiento_punto`  |      `ajuste_puntos`      |     `descripcion`      |
-|     `propuesta`     |    `cierre_propuesta`     |  `motivo_descripcion`  |
+|        Tabla        |                      `ambito`                      | Columna de descripción |
+| :-----------------: | :------------------------------------------------: | :--------------------: |
+|     `actividad`     |              `cancelacion_actividad`               |  `motivo_descripcion`  |
+|    `inscripcion`    | `cancelacion_inscripcion`, `cancelacion_actividad` |  `motivo_descripcion`  |
+|   `participacion`   |             `anulacion_participacion`              |  `motivo_descripcion`  |
+| `asignacion_mentor` |                 `rechazo_mentoria`                 |  `motivo_descripcion`  |
+|    `constancia`     | `anulacion_constancia`, `anulacion_participacion`  |  `motivo_descripcion`  |
+| `movimiento_punto`  |     `ajuste_puntos`, `anulacion_participacion`     |     `descripcion`      |
+|     `propuesta`     |                 `cierre_propuesta`                 |  `motivo_descripcion`  |
+
+Un trigger que cierra filas de otra tabla como consecuencia de su propia
+acción (la cancelación de una actividad cierra sus inscripciones, la anulación
+de una participación anula sus constancias y revierte sus puntos) cita el motivo
+de esa acción, por eso tres tablas aceptan un segundo ámbito. Una actualización
+que conserva el mismo motivo y la misma descripción no se vuelve a comprobar:
+retirar un motivo no bloquea las filas que ya lo citan.
 
 ### Catálogo activo
 
@@ -193,11 +214,11 @@ inserción, pero no valida qué se escribió en ella: la copia quedaría inmutab
 pero falsa. `trg_<tabla>_snapshot` la **sobrescribe** en el `BEFORE INSERT`
 desde su origen.
 
-|       Tabla        |            Columnas             |                                  Origen                                   |
-| :----------------: | :-----------------------------: | :-----------------------------------------------------------------------: |
-|  `participacion`   |             `anio`              |                             `actividad.anio`                              |
-| `movimiento_punto` |        `user_id`, `anio`        |                     `participacion` (cuando la cita)                      |
-|    `constancia`    | `user_id` (congelado del resto) | Escrito por el servicio de emisión, congelado por `trg_readonly_snapshot` |
+|       Tabla        |                    Columnas                    |                                  Origen                                  |
+| :----------------: | :--------------------------------------------: | :----------------------------------------------------------------------: |
+|  `participacion`   |                     `anio`                     |                             `actividad.anio`                             |
+| `movimiento_punto` |               `user_id`, `anio`                |                     `participacion` (cuando la cita)                     |
+|    `constancia`    | Folio, persona, plantilla, emisión y contenido | Escritos por el servicio de emisión; `trg_readonly_snapshot` los congela |
 
 El texto de la constancia sale de sustituir la plantilla, que es trabajo del
 servicio de emisión y no del motor; lo que sí garantiza el motor es que, una vez
@@ -233,80 +254,70 @@ la segunda ejecución no encuentra nada que hacer.
 
 ## Catálogo
 
-Estado de cada trigger del modelo. **Vigente** es lo que ya está en
-`src/rudi_*/`; **Pendiente** es diseño sin implementar. Los de la clase base y
-los `trg_readonly_*` no se repiten aquí: están en
+Todos los triggers de esta página están **vigentes** en `src/rudi_*/` y tienen
+prueba en `src/rudi_tests/test_db/`. Los de la clase base y los
+`trg_readonly_*` no se repiten aquí: están en
 [Columnas estándar][convenciones-columnas] y en la ficha de cada tabla.
 
 ### Ciclo de vida, motivo y catálogo activo
 
-|                     Trigger                     |                                           Tablas                                           |  Estado   |
-| :---------------------------------------------: | :----------------------------------------------------------------------------------------: | :-------: |
-|           `trg_<tabla>_estado_activo`           |                             `rudiuser`, `consentimientodatos`                              |  Vigente  |
-|          `trg_<tabla>_estado_terminal`          |                             `rudiuser`, `consentimientodatos`                              |  Vigente  |
-| `trg_<tabla>_estado_activo`, `_estado_terminal` | `actividad`, `inscripcion`, `participacion`, `asignacionmentor`, `constancia`, `propuesta` | Pendiente |
-|         `trg_<tabla>_transicion_valida`         |                  `actividad`, `inscripcion`, `participacion`, `propuesta`                  | Pendiente |
-|         `trg_<tabla>_estado_coherente`          | `actividad`, `inscripcion`, `participacion`, `asignacionmentor`, `constancia`, `propuesta` | Pendiente |
-|              `trg_<tabla>_motivo`               |                                    7 tablas, ver arriba                                    | Pendiente |
-|          `trg_<tabla>_catalogo_activo`          |       `programa`, `actividad`, `participacion`, `reconocimiento`, `reglapuntuacion`        | Pendiente |
+|             Trigger             |                                                            Tablas                                                             |
+| :-----------------------------: | :---------------------------------------------------------------------------------------------------------------------------: |
+|   `trg_<tabla>_estado_activo`   | `rudiuser`, `consentimientodatos`, `actividad`, `inscripcion`, `participacion`, `asignacionmentor`, `constancia`, `propuesta` |
+|  `trg_<tabla>_estado_terminal`  |                                                        Las mismas ocho                                                        |
+| `trg_<tabla>_transicion_valida` |                                   `actividad`, `inscripcion`, `participacion`, `propuesta`                                    |
+| `trg_<tabla>_estado_coherente`  |                  `actividad`, `inscripcion`, `participacion`, `asignacionmentor`, `constancia`, `propuesta`                   |
+|      `trg_<tabla>_motivo`       |                                                     7 tablas, ver arriba                                                      |
+|  `trg_<tabla>_catalogo_activo`  |                         `programa`, `actividad`, `participacion`, `reconocimiento`, `reglapuntuacion`                         |
 
 ### Persona y perfiles
 
-|                   Trigger                    | Estado  |
-| :------------------------------------------: | :-----: |
-|         `trg_rudiuser_anonimizacion`         | Vigente |
-|            `trg_rudiuser_estado`             | Vigente |
-|        `trg_rudiuser_fechanacimiento`        | Vigente |
-|          `trg_rudiuser_sync_active`          | Vigente |
-|            `trg_rudiuser_profile`            | Vigente |
-|        `trg_identificadoruser_regex`         | Vigente |
-|      `trg_identificadoruser_first_main`      | Vigente |
-|     `trg_identificadoruser_protect_main`     | Vigente |
-|       `trg_estudianteprofile_dominio`        | Vigente |
-|       `trg_estudianteprofile_carrera`        | Vigente |
-|       `trg_apiuser_email_domain_check`       | Vigente |
-|        `trg_estudiantecarrera_nivel`         | Vigente |
-|       `trg_estudiantecarrera_carrera`        | Vigente |
-|        `trg_mentorcertificacion_year`        | Vigente |
-|          `trg_parametro_valor_tipo`          | Vigente |
-| `trg_plantillamensaje_variables_*_integrity` | Vigente |
-|      `trg_normalize_tipoidentificador`       | Vigente |
-| `trg_tipoidentificador_test_posix_validity`  | Vigente |
+`trg_rudiuser_anonimizacion`, `trg_rudiuser_estado`,
+`trg_rudiuser_fechanacimiento`, `trg_rudiuser_sync_active`,
+`trg_rudiuser_profile`, `trg_identificadoruser_regex`,
+`trg_identificadoruser_first_main`, `trg_identificadoruser_protect_main`,
+`trg_estudianteprofile_dominio`, `trg_estudianteprofile_carrera`,
+`trg_apiuser_email_domain_check`, `trg_estudiantecarrera_nivel`,
+`trg_estudiantecarrera_carrera`, `trg_mentorcertificacion_year`,
+`trg_parametro_valor_tipo`, `trg_plantillamensaje_variables_*_integrity`,
+`trg_normalize_tipoidentificador` y
+`trg_tipoidentificador_test_posix_validity`. Fichas en [`Perfiles`][perfiles] y
+[`Catálogos`][catalogos].
 
-### Actividades, participación, puntos, constancias, portafolio y analítica
+### Módulos de actividad
 
-|                      Trigger                       |       Familia        |  Estado   |
-| :------------------------------------------------: | :------------------: | :-------: |
-|        `trg_actividad_publicacion_completa`        |      Coherencia      | Pendiente |
-|       `trg_actividad_cancelar_inscripciones`       | Efecto en otra tabla | Pendiente |
-|          `trg_actividad_promover_espera`           | Efecto en otra tabla | Pendiente |
-|      `trg_asignacionmentor_mentor_confirmado`      |      Coherencia      | Pendiente |
-|      `trg_asignacionmentor_equipo_coherente`       |      Coherencia      | Pendiente |
-|         `trg_inscripcion_ventana_abierta`          |      Coherencia      | Pendiente |
-|         `trg_inscripcion_cierre_bloqueado`         |      Coherencia      | Pendiente |
-|             `trg_inscripcion_contador`             |       Contador       | Pendiente |
-|         `trg_inscripcion_promover_espera`          | Efecto en otra tabla | Pendiente |
-|            `trg_participacion_snapshot`            |       Snapshot       | Pendiente |
-|      `trg_participacion_actividad_coherente`       |      Coherencia      | Pendiente |
-|      `trg_participacion_actividad_validable`       |      Coherencia      | Pendiente |
-|         `trg_participacion_otorgar_puntos`         | Efecto en otra tabla | Pendiente |
-|        `trg_participacion_revertir_puntos`         | Efecto en otra tabla | Pendiente |
-|     `trg_participacion_invalidar_constancias`      | Efecto en otra tabla | Pendiente |
-|           `trg_equipo_actividad_admite`            |      Coherencia      | Pendiente |
-|      `trg_equipomiembro_un_equipo_actividad`       |      Coherencia      | Pendiente |
-|           `trg_equipomiembro_tamano_max`           |      Coherencia      | Pendiente |
-|           `trg_equipomiembro_congelado`            |      Coherencia      | Pendiente |
-|           `trg_movimientopunto_snapshot`           |       Snapshot       | Pendiente |
-|        `trg_movimientopunto_reverso_exacto`        |      Coherencia      | Pendiente |
-|       `trg_movimientopunto_marcar_revertido`       | Efecto en otra tabla | Pendiente |
-|      `trg_plantillaconstancia_version_nueva`       |      Coherencia      | Pendiente |
-|           `trg_constancia_folio_asignar`           |      Derivación      | Pendiente |
-|         `trg_constancia_reemplazo_anulado`         |      Coherencia      | Pendiente |
-| `trg_constanciaparticipacion_participacion_valida` |      Coherencia      | Pendiente |
-|           `trg_propuesta_codigo_asignar`           |      Derivación      | Pendiente |
-|         `trg_propuesta_clasificada_marca`          |      Derivación      | Pendiente |
-|          `trg_propuesta_actividad_origen`          | Efecto en otra tabla | Pendiente |
-|        `trg_indicadorperiodo_anio_cerrado`         |      Coherencia      | Pendiente |
+|                  Trigger                  |       Familia        |              Ficha               |
+| :---------------------------------------: | :------------------: | :------------------------------: |
+|   `trg_actividad_publicacion_completa`    |      Coherencia      |   [`Actividades`][actividades]   |
+|  `trg_actividad_cancelar_inscripciones`   | Efecto en otra tabla |   [`Actividades`][actividades]   |
+|      `trg_actividad_promover_espera`      | Efecto en otra tabla |   [`Actividades`][actividades]   |
+|     `trg_inscripcion_ventana_abierta`     |      Coherencia      | [`Participación`][participacion] |
+|    `trg_inscripcion_cierre_bloqueado`     |      Coherencia      | [`Participación`][participacion] |
+|        `trg_inscripcion_contador`         |       Contador       | [`Participación`][participacion] |
+|     `trg_inscripcion_promover_espera`     | Efecto en otra tabla | [`Participación`][participacion] |
+|       `trg_participacion_snapshot`        |       Snapshot       | [`Participación`][participacion] |
+|  `trg_participacion_actividad_coherente`  |      Coherencia      | [`Participación`][participacion] |
+|  `trg_participacion_actividad_validable`  |      Coherencia      | [`Participación`][participacion] |
+|       `trg_equipo_actividad_admite`       |      Coherencia      | [`Participación`][participacion] |
+|  `trg_equipomiembro_un_equipo_actividad`  |      Coherencia      | [`Participación`][participacion] |
+|      `trg_equipomiembro_tamano_max`       |      Coherencia      | [`Participación`][participacion] |
+|       `trg_equipomiembro_congelado`       |      Coherencia      | [`Participación`][participacion] |
+| `trg_asignacionmentor_mentor_confirmado`  |      Coherencia      | [`Participación`][participacion] |
+|  `trg_asignacionmentor_equipo_coherente`  |      Coherencia      | [`Participación`][participacion] |
+|    `trg_participacion_otorgar_puntos`     | Efecto en otra tabla |        [`Puntos`][puntos]        |
+|    `trg_participacion_revertir_puntos`    | Efecto en otra tabla |        [`Puntos`][puntos]        |
+|      `trg_movimientopunto_snapshot`       |       Snapshot       |        [`Puntos`][puntos]        |
+|   `trg_movimientopunto_reverso_exacto`    |      Coherencia      |        [`Puntos`][puntos]        |
+|  `trg_movimientopunto_marcar_revertido`   | Efecto en otra tabla |        [`Puntos`][puntos]        |
+| `trg_participacion_invalidar_constancias` | Efecto en otra tabla |   [`Constancias`][constancias]   |
+|  `trg_plantillaconstancia_version_nueva`  |      Coherencia      |   [`Constancias`][constancias]   |
+|      `trg_constancia_folio_asignar`       |      Derivación      |   [`Constancias`][constancias]   |
+|    `trg_constancia_reemplazo_anulado`     |      Coherencia      |   [`Constancias`][constancias]   |
+|   `trg_constanciaparticipacion_amparo`    |      Coherencia      |   [`Constancias`][constancias]   |
+|      `trg_propuesta_codigo_asignar`       |      Derivación      |    [`Portafolio`][portafolio]    |
+|     `trg_propuesta_clasificada_marca`     |      Derivación      |    [`Portafolio`][portafolio]    |
+|     `trg_propuesta_actividad_origen`      | Efecto en otra tabla |    [`Portafolio`][portafolio]    |
+|    `trg_indicadorperiodo_anio_cerrado`    |      Coherencia      |     [`Analítica`][analitica]     |
 
 ### Triggers del diseño original que no existen
 
@@ -346,7 +357,15 @@ los `trg_readonly_*` no se repiten aquí: están en
         la petición declaró su actor, que exista para ese actor; quién es esa
         petición lo resuelve la capa de API.
 
+[actividades]: modulos/actividades.md
+[analitica]: modulos/analitica.md
+[catalogos]: modulos/catalogos.md
+[constancias]: modulos/constancias.md
 [convenciones-columnas]: convenciones.md#columnas-estandar
+[participacion]: modulos/participacion.md
+[perfiles]: modulos/perfiles.md
+[portafolio]: modulos/portafolio.md
+[puntos]: modulos/puntos.md
 [convenciones-criterios]: convenciones.md#criterios-de-invariantes
 [convenciones-nomenclatura]: convenciones.md#nomenclatura
 [notificaciones]: modulos/notificaciones.md

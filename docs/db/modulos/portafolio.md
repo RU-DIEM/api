@@ -34,32 +34,32 @@ eventos con las etiquetas de las [`Taxonomías`][taxonomias].
 
 ### Columnas
 
-|         Campo          |      Tipo      | Nulo |  Predeterminado  |                       Descripción                       |
-| :--------------------: | :------------: | :--: | :--------------: | :-----------------------------------------------------: |
-|        `codigo`        | `varchar(20)`  |  no  |     asignado     |     Único, generado por trigger. `UAM-INN-2026-014`     |
-|        `nombre`        | `varchar(200)` |  no  |                  |          Único sobre `upper(unaccent(nombre))`          |
-|     `anio_ingreso`     |   `smallint`   |  no  |                  |            Año del primer ingreso; inmutable            |
-| `actividad_origen_id`  |     `uuid`     |  sí  |                  |  Actividad en la que surgió; nula si no surgió de una   |
-|       `problema`       |     `text`     |  no  |       `''`       |          Problema y oportunidad identificados           |
-|       `solucion`       |     `text`     |  no  |       `''`       |            Síntesis de la solución propuesta            |
-| `usuario_beneficiario` |     `text`     |  no  |       `''`       |                Quién usa o se beneficia                 |
-|  `cliente_adoptante`   |     `text`     |  no  |       `''`       |                   Quién paga o adopta                   |
-| `nivel_formalizacion`  | `varchar(30)`  |  no  |                  |                 `NivelesFormalizacion`                  |
-|   `etapa_desarrollo`   | `varchar(30)`  |  no  | `por_determinar` |                   `EtapasDesarrollo`                    |
-|  `ambito_aplicacion`   | `varchar(30)`  |  no  |                  |                   `AmbitosAplicacion`                   |
-|  `sector_aplicacion`   | `varchar(30)`  |  no  | `por_determinar` |                  `SectoresAplicacion`                   |
-|       `vertical`       | `varchar(30)`  |  no  | `por_determinar` |                 `VerticalesInnovacion`                  |
-|   `tipo_innovacion`    | `varchar(30)`  |  no  | `por_determinar` |                    `TiposInnovacion`                    |
-|         `trl`          | `varchar(30)`  |  no  | `por_determinar` |                          `TRL`                          |
-|         `mrl`          | `varchar(30)`  |  no  | `por_determinar` |                          `MRL`                          |
-|    `ods_principal`     | `varchar(30)`  |  no  | `por_determinar` |                          `ODS`                          |
-|    `ods_secundario`    | `varchar(30)`  |  no  |   `no_aplica`    |                          `ODS`                          |
-|      `estado_id`       |     `uuid`     |  no  |                  |           Llave foránea a `estado_propuesta`            |
-|  `enlace_expediente`   | `varchar(500)` |  no  |       `''`       |                                                         |
-|    `clasificada_at`    | `timestamptz`  |  sí  |                  | Nulo mientras alguna clasificación siga en valor neutro |
-|      `cerrada_at`      | `timestamptz`  |  sí  |                  |                     Marca de cierre                     |
-|      `motivo_id`       |     `uuid`     |  sí  |                  |        Obligatorio al cerrar; `cierre_propuesta`        |
-|  `motivo_descripcion`  |     `text`     |  no  |       `''`       |                                                         |
+|         Campo          |      Tipo      | Nulo |  Predeterminado  |                         Descripción                         |
+| :--------------------: | :------------: | :--: | :--------------: | :---------------------------------------------------------: |
+|        `codigo`        | `varchar(20)`  |  no  |     asignado     |       Único, generado por trigger. `UAM-INN-2026-014`       |
+|        `nombre`        | `varchar(200)` |  no  |                  |            Único sobre `upper(unaccent(nombre))`            |
+|     `anio_ingreso`     |   `smallint`   |  no  |                  |              Año del primer ingreso; inmutable              |
+| `actividad_origen_id`  |     `uuid`     |  sí  |                  |    Actividad en la que surgió; nula si no surgió de una     |
+|       `problema`       |     `text`     |  no  |       `''`       |            Problema y oportunidad identificados             |
+|       `solucion`       |     `text`     |  no  |       `''`       |              Síntesis de la solución propuesta              |
+| `usuario_beneficiario` |     `text`     |  no  |       `''`       |                  Quién usa o se beneficia                   |
+|  `cliente_adoptante`   |     `text`     |  no  |       `''`       |                     Quién paga o adopta                     |
+| `nivel_formalizacion`  | `varchar(30)`  |  no  |                  |                   `NivelesFormalizacion`                    |
+|   `etapa_desarrollo`   | `varchar(30)`  |  no  | `por_determinar` |                     `EtapasDesarrollo`                      |
+|  `ambito_aplicacion`   | `varchar(30)`  |  no  |                  |                     `AmbitosAplicacion`                     |
+|  `sector_aplicacion`   | `varchar(30)`  |  no  | `por_determinar` |                    `SectoresAplicacion`                     |
+|       `vertical`       | `varchar(30)`  |  no  | `por_determinar` |                   `VerticalesInnovacion`                    |
+|   `tipo_innovacion`    | `varchar(30)`  |  no  | `por_determinar` |                      `TiposInnovacion`                      |
+|         `trl`          | `varchar(30)`  |  no  | `por_determinar` |                            `TRL`                            |
+|         `mrl`          | `varchar(30)`  |  no  | `por_determinar` |                            `MRL`                            |
+|    `ods_principal`     | `varchar(30)`  |  no  | `por_determinar` |                            `ODS`                            |
+|    `ods_secundario`    | `varchar(30)`  |  no  |   `no_aplica`    |                            `ODS`                            |
+|      `estado_id`       |     `uuid`     |  no  |                  |             Llave foránea a `estado_propuesta`              |
+|  `enlace_expediente`   | `varchar(500)` |  no  |       `''`       |                                                             |
+|    `clasificada_at`    | `timestamptz`  |  sí  |                  | Nulo mientras alguna clasificación siga en `por_determinar` |
+|      `cerrada_at`      | `timestamptz`  |  sí  |                  |                       Marca de cierre                       |
+|      `motivo_id`       |     `uuid`     |  sí  |                  |          Obligatorio al cerrar; `cierre_propuesta`          |
+|  `motivo_descripcion`  |     `text`     |  no  |       `''`       |                                                             |
 
 ### Constraints
 
@@ -84,17 +84,17 @@ CHECK ((cerrada_at IS NULL) = (motivo_id IS NULL))
 
 ### Triggers
 
-|              Nombre               |                     Evento                     | Momento  | Nivel |                                                    Regla                                                    |        Origen        |
-| :-------------------------------: | :--------------------------------------------: | :------: | :---: | :---------------------------------------------------------------------------------------------------------: | :------------------: |
-|   `trg_propuesta_estado_activo`   |             `INSERT`<br/>`UPDATE`              | `BEFORE` | `ROW` |                                    El estado asignado debe estar activo                                     | [Familia][t-estado]  |
-|  `trg_propuesta_estado_terminal`  |         `UPDATE` con cambio de estado          | `BEFORE` | `ROW` |                                     Una propuesta cerrada no se reabre                                      | [Familia][t-estado]  |
-| `trg_propuesta_transicion_valida` |         `UPDATE` con cambio de estado          | `BEFORE` | `ROW` |                      El par debe estar en `transicion_estado_propuesta` para el actor                       |    [`D-10`][d-10]    |
-| `trg_propuesta_estado_coherente`  | `INSERT`<br/>`UPDATE OF estado_id, cerrada_at` | `BEFORE` | `ROW` |                                      Estado `terminal` ⇔ `cerrada_at`                                       |    [`D-09`][d-09]    |
-|      `trg_propuesta_motivo`       |             `INSERT`<br/>`UPDATE`              | `BEFORE` | `ROW` |                                     El motivo es de `cierre_propuesta`                                      | [Familia][t-motivo]  |
-|  `trg_propuesta_codigo_asignar`   |                    `INSERT`                    | `BEFORE` | `ROW` |               Genera el código correlativo dentro de `anio_ingreso`; ignora el valor recibido               | [`RF-A-38`][rf-a-38] |
-| `trg_readonly_codigo_anioingreso` |        `UPDATE OF codigo, anio_ingreso`        | `BEFORE` | `ROW` |                                  El código y el año de ingreso no cambian                                   | [`RF-A-38`][rf-a-38] |
-| `trg_propuesta_clasificada_marca` |             `INSERT`<br/>`UPDATE`              | `BEFORE` | `ROW` | Fija `clasificada_at` cuando ninguna clasificación queda en valor neutro, y la limpia si vuelve a haber una | [`RF-A-39`][rf-a-39] |
-| `trg_propuesta_actividad_origen`  |  `INSERT`<br/>`UPDATE OF actividad_origen_id`  | `AFTER`  | `ROW` |                 Registra la actividad de origen en `propuesta_actividad` con rol `origina`                  | [`RF-A-41`][rf-a-41] |
+|              Nombre               |                     Evento                     | Momento  | Nivel |                                                      Regla                                                      |        Origen        |
+| :-------------------------------: | :--------------------------------------------: | :------: | :---: | :-------------------------------------------------------------------------------------------------------------: | :------------------: |
+|   `trg_propuesta_estado_activo`   |             `INSERT`<br/>`UPDATE`              | `BEFORE` | `ROW` |                                      El estado asignado debe estar activo                                       | [Familia][t-estado]  |
+|  `trg_propuesta_estado_terminal`  |         `UPDATE` con cambio de estado          | `BEFORE` | `ROW` |                                       Una propuesta cerrada no se reabre                                        | [Familia][t-estado]  |
+| `trg_propuesta_transicion_valida` |         `UPDATE` con cambio de estado          | `BEFORE` | `ROW` |                        El par debe estar en `transicion_estado_propuesta` para el actor                         |    [`D-10`][d-10]    |
+| `trg_propuesta_estado_coherente`  | `INSERT`<br/>`UPDATE OF estado_id, cerrada_at` | `BEFORE` | `ROW` |                                        Estado `terminal` ⇔ `cerrada_at`                                         |    [`D-09`][d-09]    |
+|      `trg_propuesta_motivo`       |             `INSERT`<br/>`UPDATE`              | `BEFORE` | `ROW` |                                       El motivo es de `cierre_propuesta`                                        | [Familia][t-motivo]  |
+|  `trg_propuesta_codigo_asignar`   |                    `INSERT`                    | `BEFORE` | `ROW` |                 Genera el código correlativo dentro de `anio_ingreso`; ignora el valor recibido                 | [`RF-A-38`][rf-a-38] |
+| `trg_readonly_codigo_anioingreso` |        `UPDATE OF codigo, anio_ingreso`        | `BEFORE` | `ROW` |                                    El código y el año de ingreso no cambian                                     | [`RF-A-38`][rf-a-38] |
+| `trg_propuesta_clasificada_marca` |             `INSERT`<br/>`UPDATE`              | `BEFORE` | `ROW` | Fija `clasificada_at` cuando ninguna clasificación queda en `por_determinar`, y la limpia si vuelve a haber una | [`RF-A-39`][rf-a-39] |
+| `trg_propuesta_actividad_origen`  |  `INSERT`<br/>`UPDATE OF actividad_origen_id`  | `AFTER`  | `ROW` |                   Registra la actividad de origen en `propuesta_actividad` con rol `origina`                    | [`RF-A-41`][rf-a-41] |
 
 `trg_propuesta_codigo_asignar` toma un bloqueo de asesoría por año
 (`pg_advisory_xact_lock`) antes de leer el correlativo, de modo que dos altas
@@ -119,7 +119,9 @@ diferencia importa porque `NULL` no se puede agrupar en un reporte y
 `por_determinar` sí. `nivel_formalizacion` y `ambito_aplicacion` no tienen valor
 neutro: se exigen al registrar.
 
-`clasificada_at` convierte esa diferencia en algo que se puede consultar: cuántas
+`por_determinar` es el único valor que significa _todavía no se evaluó_; `no_aplica`
+y `sin_alineacion` son el resultado de una evaluación, y por eso no impiden la
+marca. `clasificada_at` convierte esa diferencia en algo que se puede consultar: cuántas
 propuestas del portafolio están realmente clasificadas y cuántas siguen a medias.
 
 Los dos ODS son columnas y no una tabla puente. La matriz admite exactamente dos y
