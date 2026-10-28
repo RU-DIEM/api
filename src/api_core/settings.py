@@ -117,6 +117,13 @@ INSTALLED_APPS: Final[Sequence[str]] = (
     "rudi_catalogos",
     "rudi_auth",
     "rudi_profiles",
+    "rudi_actividades",
+    "rudi_participacion",
+    "rudi_puntos",
+    "rudi_constancias",
+    "rudi_portafolio",
+    "rudi_notificaciones",
+    "rudi_analitica",
 )
 
 MIDDLEWARE: Final[Sequence[str]] = (

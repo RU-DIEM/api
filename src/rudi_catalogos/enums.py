@@ -12,6 +12,8 @@ class EstudianteTypes(TextChoices):
 
 
 class MotivoAmbitoTypes(TextChoices):
+    AJUSTE_PUNTOS = "ajuste_puntos"
+    CIERRE_PROPUESTA = "cierre_propuesta"
     NULL_CONSTANCIA = "anulacion_constancia"
     NULL_PARTICIPACION = "anulacion_participacion"
     CANCEL_ACTIVIDAD = "cancelacion_actividad"
