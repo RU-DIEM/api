@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from django.conf import settings
 from django.db.models import (
@@ -14,11 +14,14 @@ from django.db.models import (
     SmallIntegerField,
     UniqueConstraint,
 )
-from pgtrigger import ReadOnly
+from pgtrigger import After, Before, Func, Insert, ReadOnly, Trigger
 
 from api_core.models.base import ApiProtectedModel
+from api_utils.strings import normalize_trigger
 from rudi_auth.models import RudiUser
+from rudi_catalogos.enums import MotivoAmbitoTypes
 from rudi_catalogos.models import Motivo
+from rudi_estados.triggers import motivo_ambito_trigger
 from rudi_participacion.models import Participacion
 from rudi_puntos.enums import MovimientoOrigenTypes
 
@@ -27,7 +30,80 @@ from .regla import ReglaPuntuacion
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from pgtrigger import Trigger
+########################################################################################
+
+SNAPSHOT_TRIGGER: Final[str] = normalize_trigger(f"""
+BEGIN
+    IF NEW.participacion_id IS NOT NULL THEN
+        SELECT user_id, anio
+        INTO NEW.user_id, NEW.anio
+        FROM {Participacion._meta.db_table}
+        WHERE id = NEW.participacion_id;
+        IF NOT FOUND THEN
+            RAISE foreign_key_violation USING COLUMN = 'participacion_id';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+""")  # ruff: ignore[hardcoded-sql-expression, private-member-access]
+
+REVERSO_TRIGGER: Final[Func] = Func(
+    normalize_trigger(f"""
+    DECLARE
+        original RECORD;
+    BEGIN
+        IF NEW.revierte_id IS NULL THEN
+            RETURN NEW;
+        END IF;
+        SELECT user_id, puntos, origen, revertido_at
+        INTO original
+        FROM {{meta.db_table}}
+        WHERE id = NEW.revierte_id;
+        IF NOT FOUND THEN
+            RAISE foreign_key_violation USING COLUMN = 'revierte_id';
+        END IF;
+        IF original.origen = '{MovimientoOrigenTypes.REVERSO.value}' THEN
+            RAISE check_violation
+            USING
+                COLUMN = 'revierte_id',
+                MESSAGE = 'Un reverso no se revierte.';
+        END IF;
+        IF original.revertido_at IS NOT NULL THEN
+            RAISE check_violation
+            USING
+                COLUMN = 'revierte_id',
+                MESSAGE = 'El asiento ya fue revertido.';
+        END IF;
+        IF original.user_id <> NEW.user_id THEN
+            RAISE check_violation
+            USING
+                COLUMN = 'user_id',
+                MESSAGE = 'Un reverso es de la misma persona que el asiento.';
+        END IF;
+        IF original.puntos <> -NEW.puntos THEN
+            RAISE check_violation
+            USING
+                COLUMN = 'puntos',
+                MESSAGE = 'Un reverso anula el asiento completo, con el signo contrario.';
+        END IF;
+        RETURN NEW;
+    END;
+    """)  # ruff: ignore[hardcoded-sql-expression, line-too-long]
+)
+
+MARCAR_TRIGGER: Final[Func] = Func(
+    normalize_trigger("""
+    BEGIN
+        IF NEW.revierte_id IS NOT NULL THEN
+            UPDATE {meta.db_table}
+            SET revertido_at = NEW.created_at
+            WHERE id = NEW.revierte_id
+            AND revertido_at IS NULL;
+        END IF;
+        RETURN NULL;
+    END;
+    """)
+)
 
 ########################################################################################
 
@@ -163,5 +239,32 @@ class MovimientoPunto(ApiProtectedModel):
             ReadOnly(
                 exclude=["revertido_at", "updated_at"],
                 name="trg_readonly_asiento",
+            ),
+            motivo_ambito_trigger(
+                ambitos=(
+                    MotivoAmbitoTypes.AJUSTE_PUNTOS,
+                    MotivoAmbitoTypes.NULL_PARTICIPACION,
+                ),
+                descripcion_field="descripcion",
+                entidad="movimientopunto",
+                motivo_table=Motivo._meta.db_table,  # ruff: ignore[private-member-access]
+            ),
+            Trigger(
+                func=SNAPSHOT_TRIGGER,
+                name="trg_movimientopunto_snapshot",
+                operation=Insert,
+                when=Before,
+            ),
+            Trigger(
+                func=REVERSO_TRIGGER,
+                name="trg_movimientopunto_reverso_exacto",
+                operation=Insert,
+                when=Before,
+            ),
+            Trigger(
+                func=MARCAR_TRIGGER,
+                name="trg_movimientopunto_marcar_revertido",
+                operation=Insert,
+                when=After,
             ),
         )

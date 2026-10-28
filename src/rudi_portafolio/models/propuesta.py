@@ -17,10 +17,11 @@ from django.db.models import (
     Value,
 )
 from django.db.models.functions import Concat, Upper
-from pgtrigger import ReadOnly
+from pgtrigger import Before, Func, Insert, ReadOnly, Trigger, Update, UpdateOf
 
 from api_core.models.base import ApiProtectedModel
 from api_utils.db import ImmutableUnaccent, track_table
+from api_utils.strings import normalize_trigger
 from rudi_actividades.models import Actividad
 from rudi_catalogos.enums import (
     MRL,
@@ -28,6 +29,7 @@ from rudi_catalogos.enums import (
     TRL,
     AmbitosAplicacion,
     EtapasDesarrollo,
+    MotivoAmbitoTypes,
     NivelesFormalizacion,
     RudiTaxonomia,
     SectoresAplicacion,
@@ -35,12 +37,11 @@ from rudi_catalogos.enums import (
     VerticalesInnovacion,
 )
 from rudi_catalogos.models import Motivo
-from rudi_estados.models import EstadoPropuesta
+from rudi_estados.models import EstadoPropuesta, TransicionEstadoPropuesta
+from rudi_estados.triggers import estado_lifecycle_triggers, motivo_ambito_trigger
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-    from pgtrigger import Trigger
 
 ########################################################################################
 
@@ -56,6 +57,70 @@ CLASIFICACIONES: Final[dict[str, type[RudiTaxonomia]]] = {
     "ods_principal": ODS,
     "ods_secundario": ODS,
 }
+
+# `por_determinar` is the one value that means "not evaluated yet"; the other
+# neutral values (`no_aplica`, `sin_alineacion`) are an evaluation's result
+PENDIENTE: Final[str] = EtapasDesarrollo.P_D.value
+
+CLASIFICADA_TRIGGER: Final[str] = normalize_trigger(
+    "BEGIN IF "
+    + " OR ".join(
+        f"NEW.{campo} = '{PENDIENTE}'"
+        for campo, taxonomia in CLASIFICACIONES.items()
+        if PENDIENTE in taxonomia.values
+    )
+    + """ THEN
+        NEW.clasificada_at = NULL;
+    ELSIF NEW.clasificada_at IS NULL THEN
+        NEW.clasificada_at = clock_timestamp();
+    END IF;
+    RETURN NEW;
+    END;
+    """
+)
+
+# the advisory lock serializes the numbering of one year, so two proposals filed at
+# the same time never read the same last number
+CODIGO_TRIGGER: Final[Func] = Func(
+    normalize_trigger("""
+    DECLARE
+        siguiente integer;
+    BEGIN
+        PERFORM pg_advisory_xact_lock(
+            hashtext('{meta.db_table}.codigo'),
+            NEW.anio_ingreso
+        );
+        SELECT coalesce(max(split_part(codigo, '-', 4)::integer), 0) + 1
+        INTO siguiente
+        FROM {meta.db_table}
+        WHERE anio_ingreso = NEW.anio_ingreso;
+        NEW.codigo = 'UAM-INN-'
+            || NEW.anio_ingreso
+            || '-'
+            || lpad(siguiente::text, 3, '0');
+        RETURN NEW;
+    END;
+    """)
+)
+
+ESTADO_COHERENTE_TRIGGER: Final[str] = normalize_trigger(f"""
+DECLARE
+    terminal boolean;
+BEGIN
+    SELECT estado.terminal
+    INTO terminal
+    FROM {EstadoPropuesta._meta.db_table}
+    AS estado
+    WHERE estado.id = NEW.estado_id;
+    IF terminal <> (NEW.cerrada_at IS NOT NULL) THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'cerrada_at',
+            MESSAGE = 'Una propuesta está cerrada si y solo si su estado es terminal.';
+    END IF;
+    RETURN NEW;
+END;
+""")  # ruff: ignore[hardcoded-sql-expression, private-member-access]
 
 ########################################################################################
 
@@ -203,5 +268,34 @@ class Propuesta(ApiProtectedModel):
             ReadOnly(
                 fields=["anio_ingreso", "codigo"],
                 name="trg_readonly_codigo_anioingreso",
+            ),
+            *estado_lifecycle_triggers(
+                entidad="propuesta",
+                model=EstadoPropuesta,
+                transicion_model=TransicionEstadoPropuesta,
+            ),
+            motivo_ambito_trigger(
+                ambitos=(MotivoAmbitoTypes.CIERRE_PROPUESTA,),
+                descripcion_field="motivo_descripcion",
+                entidad="propuesta",
+                motivo_table=Motivo._meta.db_table,  # ruff: ignore[private-member-access]
+            ),
+            Trigger(
+                func=CLASIFICADA_TRIGGER,
+                name="trg_propuesta_clasificada_marca",
+                operation=(Insert | Update),
+                when=Before,
+            ),
+            Trigger(
+                func=CODIGO_TRIGGER,
+                name="trg_propuesta_codigo_asignar",
+                operation=Insert,
+                when=Before,
+            ),
+            Trigger(
+                func=ESTADO_COHERENTE_TRIGGER,
+                name="trg_propuesta_estado_coherente",
+                operation=(Insert | UpdateOf("estado_id", "cerrada_at")),
+                when=Before,
             ),
         )

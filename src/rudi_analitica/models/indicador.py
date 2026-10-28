@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from django.conf import settings
 from django.db.models import (
@@ -15,12 +15,28 @@ from django.db.models import (
     TextField,
     UniqueConstraint,
 )
+from pgtrigger import Before, Insert, Trigger
 
 from api_core.models.base import ApiAppendOnlyModel
+from api_utils.strings import normalize_trigger
 from rudi_analitica.enums import IndicadorUnidadTypes
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+########################################################################################
+
+ANIO_CERRADO_TRIGGER: Final[str] = normalize_trigger("""
+BEGIN
+    IF NEW.anio >= extract(year FROM rudi_hoy()) THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'anio',
+            MESSAGE = 'Solo se cierra un año que ya terminó.';
+    END IF;
+    RETURN NEW;
+END;
+""")
 
 ########################################################################################
 
@@ -84,4 +100,14 @@ class IndicadorPeriodo(ApiAppendOnlyModel):
             *ApiAppendOnlyModel.Meta.indexes,
             Index(F("anio").desc(), F("indicador"), name="idx_%(class)s_anio"),
             Index(F("indicador"), F("anio").desc(), name="idx_%(class)s_indicador"),
+        )
+
+        triggers: Sequence[Trigger] = (
+            *ApiAppendOnlyModel.Meta.triggers,
+            Trigger(
+                func=ANIO_CERRADO_TRIGGER,
+                name="trg_indicadorperiodo_anio_cerrado",
+                operation=Insert,
+                when=Before,
+            ),
         )

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from django.db.models import (
     RESTRICT,
@@ -18,18 +18,46 @@ from django.db.models import (
     UniqueConstraint,
 )
 from django.db.models.functions import Lower
+from pgtrigger import (
+    Before,
+    Insert,
+    Trigger,
+    UpdateOf,
+    register as register_trigger,
+)
 
 from api_core.models.base import ApiProtectedModel
 from api_utils.db import track_table
+from api_utils.strings import normalize_trigger
 from rudi_actividades.enums import ModalidadTypes, ResponsableRolTypes
 from rudi_auth.models import RudiUser
+from rudi_catalogos.enums import MotivoAmbitoTypes
 from rudi_catalogos.models import Motivo, TipoActividad
-from rudi_estados.models import EstadoActividad
+from rudi_core.triggers import catalogo_activo_trigger
+from rudi_estados.models import EstadoActividad, TransicionEstadoActividad
+from rudi_estados.triggers import estado_lifecycle_triggers, motivo_ambito_trigger
 
 from .programa import Programa
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+########################################################################################
+
+ESTADO_COHERENTE_TRIGGER: Final[str] = normalize_trigger(f"""
+DECLARE
+    publico boolean;
+BEGIN
+    SELECT public
+    INTO publico
+    FROM {EstadoActividad._meta.db_table}
+    WHERE id = NEW.estado_id;
+    IF publico AND NEW.publicada_at IS NULL THEN
+        NEW.publicada_at = clock_timestamp();
+    END IF;
+    RETURN NEW;
+END;
+""")  # ruff: ignore[hardcoded-sql-expression, private-member-access]
 
 ########################################################################################
 
@@ -183,6 +211,31 @@ class Actividad(ApiProtectedModel):
             Index(fields=["anio", "tipo_actividad"], name="idx_%(class)s_anio_tipo"),
         )
 
+        triggers: Sequence[Trigger] = (
+            *ApiProtectedModel.Meta.triggers,
+            *estado_lifecycle_triggers(
+                entidad="actividad",
+                model=EstadoActividad,
+                transicion_model=TransicionEstadoActividad,
+            ),
+            catalogo_activo_trigger(
+                catalogos={"programa_id": Programa, "tipo_actividad_id": TipoActividad},
+                entidad="actividad",
+            ),
+            motivo_ambito_trigger(
+                ambitos=(MotivoAmbitoTypes.CANCEL_ACTIVIDAD,),
+                descripcion_field="motivo_descripcion",
+                entidad="actividad",
+                motivo_table=Motivo._meta.db_table,  # ruff: ignore[private-member-access]
+            ),
+            Trigger(
+                func=ESTADO_COHERENTE_TRIGGER,
+                name="trg_actividad_estado_coherente",
+                operation=(Insert | UpdateOf("estado_id")),
+                when=Before,
+            ),
+        )
+
 
 ########################################################################################
 
@@ -219,3 +272,41 @@ class ActividadResponsable(ApiProtectedModel):
                 name="unq_%(class)s_vigente",
             ),
         )
+
+
+########################################################################################
+
+PUBLICACION_TRIGGER: Final[str] = normalize_trigger(f"""
+DECLARE
+    publico_nuevo boolean;
+    publico_previo boolean;
+BEGIN
+    SELECT public INTO publico_nuevo
+    FROM {EstadoActividad._meta.db_table}
+    WHERE id = NEW.estado_id;
+    SELECT public INTO publico_previo
+    FROM {EstadoActividad._meta.db_table}
+    WHERE id = OLD.estado_id;
+    IF publico_nuevo AND NOT coalesce(publico_previo, false) AND NOT EXISTS (
+        SELECT 1
+        FROM {ActividadResponsable._meta.db_table}
+        WHERE actividad_id = NEW.id
+        AND retirado_at IS NULL
+    ) THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'estado_id',
+            MESSAGE = 'Una actividad no se publica sin al menos un responsable.';
+    END IF;
+    RETURN NEW;
+END;
+""")  # ruff: ignore[hardcoded-sql-expression, private-member-access]
+
+register_trigger(
+    Trigger(
+        func=PUBLICACION_TRIGGER,
+        name="trg_actividad_publicacion_completa",
+        operation=UpdateOf("estado_id"),
+        when=Before,
+    ),
+)(Actividad)

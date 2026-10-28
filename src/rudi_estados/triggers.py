@@ -12,6 +12,8 @@ from pgtrigger import (
 from api_utils.strings import normalize_trigger
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from api_utils.types import DatabaseModel
 
 ########################################################################################
@@ -27,7 +29,7 @@ def estado_lifecycle_triggers(
     """
     Build the triggers every table with a state machine shares.
 
-    - `trg_<entidad>_estado_activo`: the row may only point at an active state.
+    - `trg_<entidad>_estado_activo`: a row may only enter an active state.
     - `trg_<entidad>_estado_terminal`: a row in a terminal state never moves.
     - `trg_<entidad>_transicion_valida` (only with *transicion_model*): a change
       of state must be declared for the acting role (`rudi_actor()`); with no
@@ -51,6 +53,9 @@ def estado_lifecycle_triggers(
     estado_activo = Trigger(
         declare=[("activo", "boolean")],
         func=normalize_trigger(f"""
+            IF TG_OP = 'UPDATE' AND OLD.{fk} IS NOT DISTINCT FROM NEW.{fk} THEN
+                RETURN NEW;
+            END IF;
             SELECT is_active
             INTO activo
             FROM {estado_table}
@@ -136,25 +141,27 @@ def estado_lifecycle_triggers(
 
 def motivo_ambito_trigger(
     *,
-    ambito: str,
+    ambitos: Sequence[str],
     descripcion_field: str | None = None,
+    entidad: str,
     motivo_field: str = "motivo",
     motivo_table: str,
-    name: str,
 ) -> Trigger:
     """
     Build the trigger that checks a reason picked from the closed `Motivo` list.
 
-    The reason must exist, be active, and belong to the action's *ambito*.
-    With *descripcion_field*, a reason that `require_descripcion` also needs
-    a free-text description.
+    The reason must exist, be active, and belong to one of the action's
+    *ambitos*. With *descripcion_field*, a reason that `require_descripcion`
+    also needs a free-text description. An update that keeps the same reason
+    and description is not re-checked, so retiring a reason never locks the
+    rows that already cite it.
 
     Args:
-        ambito: The `MotivoAmbitoTypes` value the reason must belong to.
+        ambitos: The `MotivoAmbitoTypes` values the reason may belong to.
         descripcion_field: The free-text column, if the table has one.
+        entidad: The table's name in the trigger name (`trg_<entidad>_motivo`).
         motivo_field: The foreign key that points at the reason.
         motivo_table: The reason catalog's table.
-        name: The trigger's name.
 
     Returns:
         The trigger.
@@ -162,6 +169,14 @@ def motivo_ambito_trigger(
     """
 
     fk: str = f"{motivo_field}_id"
+
+    sin_cambio: str = f"OLD.{fk} IS NOT DISTINCT FROM NEW.{fk}" + (
+        f" AND OLD.{descripcion_field} IS NOT DISTINCT FROM NEW.{descripcion_field}"
+        if descripcion_field
+        else ""
+    )
+
+    lista: str = ", ".join(f"'{a}'" for a in ambitos)
 
     descripcion_check: str = (
         f"""
@@ -179,31 +194,32 @@ def motivo_ambito_trigger(
     return Trigger(
         declare=[("motivo", "RECORD")],
         func=normalize_trigger(f"""
-            IF NEW.{fk} IS NOT NULL THEN
-                SELECT ambito, require_descripcion, is_active
-                INTO motivo
-                FROM {motivo_table}
-                WHERE id = NEW.{fk};
-                IF NOT FOUND THEN
-                    RAISE foreign_key_violation USING COLUMN = '{fk}';
-                END IF;
-                IF NOT motivo.is_active THEN
-                    RAISE check_violation
-                    USING
-                        COLUMN = '{fk}',
-                        MESSAGE = 'El motivo está desactivado.';
-                END IF;
-                IF motivo.ambito <> '{ambito}' THEN
-                    RAISE check_violation
-                    USING
-                        COLUMN = '{fk}',
-                        MESSAGE = 'El motivo no pertenece al ámbito de esta acción.';
-                END IF;
-                {descripcion_check}
+            IF NEW.{fk} IS NULL OR (TG_OP = 'UPDATE' AND {sin_cambio}) THEN
+                RETURN NEW;
             END IF;
+            SELECT ambito, require_descripcion, is_active
+            INTO motivo
+            FROM {motivo_table}
+            WHERE id = NEW.{fk};
+            IF NOT FOUND THEN
+                RAISE foreign_key_violation USING COLUMN = '{fk}';
+            END IF;
+            IF NOT motivo.is_active THEN
+                RAISE check_violation
+                USING
+                    COLUMN = '{fk}',
+                    MESSAGE = 'El motivo está desactivado.';
+            END IF;
+            IF motivo.ambito NOT IN ({lista}) THEN
+                RAISE check_violation
+                USING
+                    COLUMN = '{fk}',
+                    MESSAGE = 'El motivo no pertenece al ámbito de esta acción.';
+            END IF;
+            {descripcion_check}
             RETURN NEW;
         """),  # ruff: ignore[hardcoded-sql-expression]
-        name=name,
+        name=f"trg_{entidad}_motivo",
         operation=(Insert | Update),
         when=Before,
     )

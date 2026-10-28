@@ -16,6 +16,7 @@ from pgtrigger import ReadOnly
 from api_core.models.base import ApiSoftDeleteModel
 from api_utils.db import ImmutableUnaccent, track_table
 from rudi_catalogos.models import TipoActividad
+from rudi_core.triggers import catalogo_activo_trigger
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -61,4 +62,8 @@ class Programa(ApiSoftDeleteModel):
         triggers: Sequence[Trigger] = (
             *ApiSoftDeleteModel.Meta.triggers,
             ReadOnly(fields=["codigo"], name="trg_readonly_codigo"),
+            catalogo_activo_trigger(
+                catalogos={"tipo_actividad_id": TipoActividad},
+                entidad="programa",
+            ),
         )

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from django.conf import settings
 from django.db.models import (
@@ -18,13 +18,16 @@ from django.db.models import (
 )
 from django.db.models.functions import Now
 from django.utils.timezone import now
-from pgtrigger import ReadOnly
+from pgtrigger import Before, Func, Insert, ReadOnly, Trigger, UpdateOf
 
 from api_core.models.base import ApiAppendOnlyModel, ApiProtectedModel
 from api_utils.db import track_table
+from api_utils.strings import normalize_trigger
 from rudi_auth.models import RudiUser
+from rudi_catalogos.enums import MotivoAmbitoTypes
 from rudi_catalogos.models import Motivo
-from rudi_estados.models import EstadoConstancia
+from rudi_estados.models import EstadoConstancia, EstadoParticipacion
+from rudi_estados.triggers import estado_lifecycle_triggers, motivo_ambito_trigger
 from rudi_participacion.models import Participacion
 
 from .plantilla import PlantillaConstancia
@@ -32,7 +35,59 @@ from .plantilla import PlantillaConstancia
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from pgtrigger import Trigger
+########################################################################################
+
+FOLIO_TRIGGER: Final[str] = normalize_trigger("""
+BEGIN
+    NEW.folio = 'DIEM-'
+        || to_char(rudi_hoy(), 'YYYY')
+        || '-'
+        || lpad(nextval('rudiconstancias_folio_seq')::text, 6, '0');
+    RETURN NEW;
+END;
+""")
+
+ESTADO_COHERENTE_TRIGGER: Final[str] = normalize_trigger(f"""
+DECLARE
+    valida boolean;
+BEGIN
+    SELECT valid
+    INTO valida
+    FROM {EstadoConstancia._meta.db_table}
+    WHERE id = NEW.estado_id;
+    IF valida AND NEW.anulada_at IS NOT NULL THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'estado_id',
+            MESSAGE = 'Una constancia anulada no puede estar en un estado válido.';
+    END IF;
+    RETURN NEW;
+END;
+""")  # ruff: ignore[hardcoded-sql-expression, private-member-access]
+
+REEMPLAZO_TRIGGER: Final[str] = normalize_trigger("""
+DECLARE
+    anulada timestamptz;
+BEGIN
+    IF NEW.reemplaza_a_id IS NULL THEN
+        RETURN NEW;
+    END IF;
+    SELECT anulada_at
+    INTO anulada
+    FROM {meta.db_table}
+    WHERE id = NEW.reemplaza_a_id;
+    IF NOT FOUND THEN
+        RAISE foreign_key_violation USING COLUMN = 'reemplaza_a_id';
+    END IF;
+    IF anulada IS NULL THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'reemplaza_a_id',
+            MESSAGE = 'Solo se reemplaza una constancia anulada.';
+    END IF;
+    RETURN NEW;
+END;
+""")
 
 ########################################################################################
 
@@ -158,10 +213,80 @@ class Constancia(ApiProtectedModel):
                 ],
                 name="trg_readonly_snapshot",
             ),
+            *estado_lifecycle_triggers(entidad="constancia", model=EstadoConstancia),
+            motivo_ambito_trigger(
+                ambitos=(
+                    MotivoAmbitoTypes.NULL_CONSTANCIA,
+                    MotivoAmbitoTypes.NULL_PARTICIPACION,
+                ),
+                descripcion_field="motivo_descripcion",
+                entidad="constancia",
+                motivo_table=Motivo._meta.db_table,  # ruff: ignore[private-member-access]
+            ),
+            Trigger(
+                func=FOLIO_TRIGGER,
+                name="trg_constancia_folio_asignar",
+                operation=Insert,
+                when=Before,
+            ),
+            Trigger(
+                func=ESTADO_COHERENTE_TRIGGER,
+                name="trg_constancia_estado_coherente",
+                operation=(Insert | UpdateOf("estado_id", "anulada_at")),
+                when=Before,
+            ),
+            Trigger(
+                func=Func(REEMPLAZO_TRIGGER),
+                name="trg_constancia_reemplazo_anulado",
+                operation=(Insert | UpdateOf("reemplaza_a_id")),
+                when=Before,
+            ),
         )
 
 
 ########################################################################################
+
+
+VALIDA_TRIGGER: Final[str] = normalize_trigger(f"""
+DECLARE
+    participacion RECORD;
+    titular uuid;
+BEGIN
+    SELECT p.user_id, p.validada_at, p.anulada_at, e.allow_constancia
+    INTO participacion
+    FROM {Participacion._meta.db_table}
+    AS p
+    JOIN {EstadoParticipacion._meta.db_table}
+    AS e
+    ON e.id = p.estado_id
+    WHERE p.id = NEW.participacion_id;
+    IF NOT FOUND THEN
+        RAISE foreign_key_violation USING COLUMN = 'participacion_id';
+    END IF;
+    SELECT user_id
+    INTO titular
+    FROM {Constancia._meta.db_table}
+    WHERE id = NEW.constancia_id;
+    IF NOT FOUND THEN
+        RAISE foreign_key_violation USING COLUMN = 'constancia_id';
+    END IF;
+    IF participacion.user_id <> titular THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'participacion_id',
+            MESSAGE = 'La participación es de otra persona.';
+    END IF;
+    IF participacion.validada_at IS NULL
+    OR participacion.anulada_at IS NOT NULL
+    OR NOT participacion.allow_constancia THEN
+        RAISE check_violation
+        USING
+            COLUMN = 'participacion_id',
+            MESSAGE = 'La participación no está validada en un estado que admita constancia.';
+    END IF;
+    RETURN NEW;
+END;
+""")  # ruff: ignore[hardcoded-sql-expression, line-too-long, private-member-access]
 
 
 class ConstanciaParticipacion(ApiAppendOnlyModel):
@@ -188,5 +313,15 @@ class ConstanciaParticipacion(ApiAppendOnlyModel):
             UniqueConstraint(
                 fields=["constancia", "orden"],
                 name="unq_%(class)s_orden",
+            ),
+        )
+
+        triggers: Sequence[Trigger] = (
+            *ApiAppendOnlyModel.Meta.triggers,
+            Trigger(
+                func=VALIDA_TRIGGER,
+                name="trg_constanciaparticipacion_amparo",
+                operation=Insert,
+                when=Before,
             ),
         )

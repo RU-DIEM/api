@@ -31,6 +31,7 @@ from api_core.models.base import (
 from api_utils.db import track_table
 from rudi_actividades.models import Programa
 from rudi_catalogos.models import RolParticipacion, TipoActividad, TipoReconocimiento
+from rudi_core.triggers import catalogo_activo_trigger
 from rudi_estados.models import EstadoParticipacion
 
 if TYPE_CHECKING:
@@ -157,4 +158,14 @@ class ReglaPuntuacion(ApiSoftDeleteModel):
             *remove_default_touch(ApiSoftDeleteModel.Meta.triggers),
             touch_updatedat_trigger(exclude_generated=["especificidad"]),
             ReadOnly(fields=["codigo"], name="trg_readonly_codigo"),
+            catalogo_activo_trigger(
+                catalogos={
+                    "estado_participacion_id": EstadoParticipacion,
+                    "programa_id": Programa,
+                    "rol_id": RolParticipacion,
+                    "tipo_actividad_id": TipoActividad,
+                    "tipo_reconocimiento_id": TipoReconocimiento,
+                },
+                entidad="reglapuntuacion",
+            ),
         )
