@@ -189,7 +189,7 @@ Los dos últimos escriben en `inscripcion`, así que se declaran en
 | :----------------------------: | :--------------------------------------------------: | :--------------------------------------: |
 |    `idx_actividad_catalogo`    |   `(fecha_inicio DESC) WHERE cancelada_at IS NULL`   | Catálogo público de [`RF-P-14`][rf-p-14] |
 | `idx_actividad_programa_anio`  |                `(programa_id, anio)`                 |       Reportes por programa y año        |
-| `idx_actividad_ventana_cierre` | `(inscripcion_cierra_at) WHERE cancelada_at IS NULL` |       Barrido de cierre de ventana       |
+| `idx_actividad_ventana_cierre` | `(inscripcion_cierra_at) WHERE cancelada_at IS NULL` |       Listado de ventanas abiertas       |
 |   `idx_actividad_anio_tipo`    |             `(anio, tipo_actividad_id)`              |   Segmentación de [`RF-A-42`][rf-a-42]   |
 
 ### Notas de diseño

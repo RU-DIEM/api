@@ -345,7 +345,7 @@ prueba en `src/rudi_tests/test_db/`. Los de la clase base y los
 
     === "**Sin evento de escritura que lo dispare**"
 
-        Cerrar una ventana de inscripción o vencer una propuesta de mentoría
+        Iniciar una actividad en su fecha o vencer una propuesta de mentoría
         ocurren porque pasó el tiempo, no porque alguien escribió. Son los
         [procesos programados][procesos], y su contrato es que cada uno hace
         la escritura que **sí** dispara los triggers de esta página.
