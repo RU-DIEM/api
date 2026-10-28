@@ -36,42 +36,27 @@ def sent_plantillas(monkeypatch: pytest.MonkeyPatch) -> list[dict]:
     return captured
 
 
+# the estados are structural seeds (`rudi_estados/seeders.py`), present after `migrate`
+
+
 @pytest.fixture
 def estado_inicial(db: None) -> EstadoRudiUser:
-    return EstadoRudiUser.objects.create(
-        codigo="pendiente",
-        etiqueta="Pendiente",
-        initial=True,
-    )
+    return EstadoRudiUser.objects.get(codigo="pendiente_verificacion")
 
 
 @pytest.fixture
 def estado_activo(db: None) -> EstadoRudiUser:
-    return EstadoRudiUser.objects.create(
-        allow_ingreso=True,
-        codigo="activo",
-        etiqueta="Activo",
-    )
+    return EstadoRudiUser.objects.get(codigo="verificada")
 
 
 @pytest.fixture
 def estado_suspendido(db: None) -> EstadoRudiUser:
-    return EstadoRudiUser.objects.create(
-        codigo="suspendido",
-        etiqueta="Suspendido",
-    )
+    return EstadoRudiUser.objects.get(codigo="suspendida")
 
 
 @pytest.fixture
 def consentimiento_inicial(db: None) -> EstadoConsentimiento:
-    return EstadoConsentimiento.objects.create(
-        allow_comunicacion=True,
-        allow_reporte=True,
-        codigo="otorgado",
-        etiqueta="Otorgado",
-        initial=True,
-        source=InputSourceTypes.SELF,
-    )
+    return EstadoConsentimiento.objects.get(source=InputSourceTypes.SELF)
 
 
 @pytest.fixture

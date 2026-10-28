@@ -273,22 +273,31 @@ Los dominios sin tabla de transiciones cambian por caminos demasiado simples
 para justificar una tabla de pares; su exigencia de motivo se declara en el
 estado destino (`require_motivo`).
 
-### Estados previstos
+### Estados sembrados
 
-Los códigos que usan los servicios. Las filas las siembra la DIEM al poner en
-marcha el sistema; el modelo no fija ninguna, salvo que cada dominio tenga su
-estado inicial.
+Los códigos que usan los servicios. Son semillas estructurales
+(`rudi_estados/seeders.py`): se crean al migrar si no existen, y la DIEM puede
+editar sus etiquetas y atributos o añadir otros. Las transiciones se siembran
+igual, por actor.
 
-|          Dominio           |                                        Estados                                         |
-| :------------------------: | :------------------------------------------------------------------------------------: |
-|     `estado_rudiuser`      |  `pendiente_verificacion` (inicial), `activa`, `suspendida`, `anonimizada` (terminal)  |
-|  `estado_consentimiento`   |       `otorgado`, `pendiente_verificar`, `no_autorizado`, `retirado` (terminal)        |
-|     `estado_actividad`     |        `borrador` (inicial), `publicada`, `en_curso`, `finalizada`, `cancelada`        |
-|    `estado_inscripcion`    |            `pendiente`, `confirmada`, `en_espera`, `cancelada`, `rechazada`            |
-|   `estado_participacion`   | `registrada` (inicial), `en_curso`, `finalizada`, `retirada`, `no_completo`, `anulada` |
-| `estado_asignacion_mentor` | `propuesta` (inicial), `confirmada`, `declinada`, `finalizada`, `cancelada`, `vencida` |
-|    `estado_constancia`     |                     `emitida` (inicial), `anulada`, `reemplazada`                      |
-|     `estado_propuesta`     |  `activa` (inicial), `en_pausa`, `finalizada`, `implementada`, `cerrada`, `integrada`  |
+|          Dominio           |                                                                      Estados                                                                       |
+| :------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------: |
+|     `estado_rudiuser`      |                 `pendiente_verificacion` (inicial), `verificada`, `activa`, `suspendida` (exige motivo), `anonimizada` (terminal)                  |
+|  `estado_consentimiento`   | `otorgado` (inicial de `usuario`), `pendiente_verificar` (inicial de `sistema`), `no_autorizado` (inicial de `importacion`), `retirado` (terminal) |
+|     `estado_actividad`     |                                `borrador` (inicial), `publicada`, `en_curso`, `finalizada`, `cancelada` (terminal)                                 |
+|    `estado_inscripcion`    |            `pendiente` (inicial de `usuario`), `confirmada` (inicial de `sistema`), `en_espera`, `cancelada` y `rechazada` (terminales)            |
+|   `estado_participacion`   |                   `registrada` (inicial), `en_curso`, `finalizada` y `no_completo` (efectivas), `retirada`, `anulada` (terminal)                   |
+| `estado_asignacion_mentor` |               `propuesta` (inicial), `confirmada`, `declinada`, `finalizada`, `cancelada`, `vencida` (las cuatro últimas terminales)               |
+|    `estado_constancia`     |                                             `emitida` (inicial), `anulada`, `reemplazada` (terminales)                                             |
+|     `estado_propuesta`     |                `activa` (inicial), `en_pausa`, `finalizada`, `implementada`, `integrada`, `cerrada` (las cuatro últimas terminales)                |
+
+`verificada` y `activa` admiten el ingreso; solo `activa` admite inscribirse, y
+por eso exige al menos un perfil (`trg_rudiuser_profile`). Confirmar el correo
+lleva a la persona a `verificada`; declarar su primer perfil la lleva a `activa`.
+
+La lista de espera promueve a `pendiente`, no a `confirmada`: la persona recibe
+el aviso y la DIEM confirma, por la transición de `sistema` `en_espera` ⇒
+`pendiente`.
 
 `estado_rudiuser.anonimizada` es terminal, y entrar en ella fija
 `rudi_user.anonimizado_at` (`trg_rudiuser_estado`).

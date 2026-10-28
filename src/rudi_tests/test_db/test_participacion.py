@@ -87,7 +87,8 @@ def test_cerrar_libera_y_promueve(mundo: Mundo) -> None:
     set_actor(ActorTypes.USER)
     cerrar(mundo, primera)
 
-    assert en_estado(espera, mundo.estados.confirmada)
+    # promoted into `pendiente`: the person is told, not confirmed
+    assert en_estado(espera, mundo.estados.pendiente)
     assert Inscripcion.objects.filter(pk=espera.pk, posicion_espera=None).exists()
     assert inscritos(actividad) == 1
 
@@ -105,7 +106,7 @@ def test_ampliar_cupo_promueve(mundo: Mundo) -> None:
 
     Actividad.objects.filter(pk=actividad.pk).update(cupo=2)
 
-    assert en_estado(espera, mundo.estados.confirmada)
+    assert en_estado(espera, mundo.estados.pendiente)
     assert inscritos(actividad) == 2
 
 

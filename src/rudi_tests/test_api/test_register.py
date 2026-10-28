@@ -258,12 +258,7 @@ def test_registration_waits_for_the_confirmed_address(
 
 @pytest.fixture
 def consentimiento_inicial_sistema(db: None) -> EstadoConsentimiento:
-    return EstadoConsentimiento.objects.create(
-        codigo="otorgado_sistema",
-        etiqueta="Otorgado por el sistema",
-        initial=True,
-        source=InputSourceTypes.MODERN,
-    )
+    return EstadoConsentimiento.objects.get(source=InputSourceTypes.MODERN)
 
 
 def test_invite_creates_a_client_without_a_password(

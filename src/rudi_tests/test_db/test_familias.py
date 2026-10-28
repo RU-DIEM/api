@@ -112,7 +112,7 @@ def test_servicios_de_estado(mundo: Mundo) -> None:
         from_id=estados.borrador.pk,
     )
 
-    assert list(validas.values_list("to_estado", flat=True)) == [estados.publicada.pk]
+    assert estados.publicada.pk in validas.values_list("to_estado", flat=True)
 
     assert not exige_motivo(
         actor=ActorTypes.ADMIN,

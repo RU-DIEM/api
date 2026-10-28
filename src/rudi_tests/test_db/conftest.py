@@ -17,7 +17,7 @@ from rudi_catalogos.models import (
     TipoActividad,
     TipoReconocimiento,
 )
-from rudi_estados.enums import ActorTypes, InputSourceTypes
+from rudi_estados.enums import InputSourceTypes
 from rudi_estados.models import (
     EstadoActividad,
     EstadoAsignacionMentor,
@@ -26,12 +26,7 @@ from rudi_estados.models import (
     EstadoParticipacion,
     EstadoPropuesta,
     EstadoRudiUser,
-    TransicionEstadoActividad,
-    TransicionEstadoInscripcion,
-    TransicionEstadoParticipacion,
-    TransicionEstadoPropuesta,
 )
-from rudi_estados.models.base import RudiTransicion
 from rudi_participacion.models import Inscripcion, Participacion
 
 ########################################################################################
@@ -56,16 +51,6 @@ def immediate() -> None:
         cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
 
 
-def transicion(
-    model: type[RudiTransicion],
-    desde: object,
-    hasta: object,
-    *actores: ActorTypes,
-) -> None:
-    for actor in actores or (ActorTypes.ADMIN,):
-        model.objects.create(actor=actor, from_estado=desde, to_estado=hasta)
-
-
 ########################################################################################
 
 
@@ -76,6 +61,7 @@ class Estados:
     cancelada: EstadoActividad
 
     confirmada: EstadoInscripcion
+    pendiente: EstadoInscripcion
     en_espera: EstadoInscripcion
     inscripcion_cerrada: EstadoInscripcion
 
@@ -93,131 +79,26 @@ class Estados:
     mentoria_declinada: EstadoAsignacionMentor
 
 
-def estados_actividad() -> dict:
-    borrador = EstadoActividad.objects.create(
-        codigo="borrador",
-        etiqueta="Borrador",
-        initial=True,
+def seeded() -> Estados:
+    # the structural seeders (`rudi_estados/seeders.py`) run after `migrate`
+    return Estados(
+        anulada=EstadoParticipacion.objects.get(codigo="anulada"),
+        borrador=EstadoActividad.objects.get(codigo="borrador"),
+        cancelada=EstadoActividad.objects.get(codigo="cancelada"),
+        confirmada=EstadoInscripcion.objects.get(codigo="confirmada"),
+        constancia_anulada=EstadoConstancia.objects.get(codigo="anulada"),
+        emitida=EstadoConstancia.objects.get(codigo="emitida"),
+        en_espera=EstadoInscripcion.objects.get(codigo="en_espera"),
+        inscripcion_cerrada=EstadoInscripcion.objects.get(codigo="cancelada"),
+        mentoria_declinada=EstadoAsignacionMentor.objects.get(codigo="declinada"),
+        mentoria_propuesta=EstadoAsignacionMentor.objects.get(codigo="propuesta"),
+        pendiente=EstadoInscripcion.objects.get(codigo="pendiente"),
+        propuesta_activa=EstadoPropuesta.objects.get(codigo="activa"),
+        propuesta_cerrada=EstadoPropuesta.objects.get(codigo="cerrada"),
+        publicada=EstadoActividad.objects.get(codigo="publicada"),
+        registrada=EstadoParticipacion.objects.get(codigo="registrada"),
+        validada=EstadoParticipacion.objects.get(codigo="finalizada"),
     )
-    publicada = EstadoActividad.objects.create(
-        allow_inscripcion=True,
-        allow_validacion=True,
-        codigo="publicada",
-        etiqueta="Publicada",
-        public=True,
-    )
-    cancelada = EstadoActividad.objects.create(
-        codigo="cancelada",
-        etiqueta="Cancelada",
-        terminal=True,
-    )
-
-    transicion(TransicionEstadoActividad, borrador, publicada)
-    transicion(TransicionEstadoActividad, publicada, cancelada)
-
-    return {"borrador": borrador, "cancelada": cancelada, "publicada": publicada}
-
-
-def estados_inscripcion() -> dict:
-    confirmada = EstadoInscripcion.objects.create(
-        allow_participacion=True,
-        codigo="confirmada",
-        consume_cupo=True,
-        etiqueta="Confirmada",
-        initial=True,
-        source=InputSourceTypes.SELF,
-    )
-    en_espera = EstadoInscripcion.objects.create(
-        codigo="en_espera",
-        etiqueta="En espera",
-    )
-    cerrada = EstadoInscripcion.objects.create(
-        codigo="cancelada",
-        etiqueta="Cancelada",
-        terminal=True,
-    )
-
-    sistema, persona = ActorTypes.SYS, ActorTypes.USER
-
-    transicion(TransicionEstadoInscripcion, en_espera, confirmada, sistema)
-    transicion(TransicionEstadoInscripcion, confirmada, cerrada, sistema, persona)
-    transicion(TransicionEstadoInscripcion, en_espera, cerrada, sistema)
-
-    return {
-        "confirmada": confirmada,
-        "en_espera": en_espera,
-        "inscripcion_cerrada": cerrada,
-    }
-
-
-def estados_participacion() -> dict:
-    registrada = EstadoParticipacion.objects.create(
-        codigo="registrada",
-        etiqueta="Registrada",
-        initial=True,
-    )
-    validada = EstadoParticipacion.objects.create(
-        allow_constancia=True,
-        allow_puntos=True,
-        codigo="finalizada",
-        efectiva=True,
-        etiqueta="Finalizada",
-    )
-    anulada = EstadoParticipacion.objects.create(
-        codigo="anulada",
-        etiqueta="Anulada",
-        terminal=True,
-    )
-
-    transicion(TransicionEstadoParticipacion, registrada, validada)
-    transicion(TransicionEstadoParticipacion, validada, anulada)
-
-    return {"anulada": anulada, "registrada": registrada, "validada": validada}
-
-
-def estados_resto() -> dict:
-    activa = EstadoPropuesta.objects.create(
-        allow_portafolio=True,
-        codigo="activa",
-        etiqueta="Activa",
-        initial=True,
-        vigente=True,
-    )
-    cerrada = EstadoPropuesta.objects.create(
-        codigo="cerrada",
-        etiqueta="Cerrada",
-        terminal=True,
-    )
-
-    transicion(TransicionEstadoPropuesta, activa, cerrada)
-
-    return {
-        "constancia_anulada": EstadoConstancia.objects.create(
-            codigo="anulada",
-            etiqueta="Anulada",
-            require_motivo=True,
-            terminal=True,
-        ),
-        "emitida": EstadoConstancia.objects.create(
-            codigo="emitida",
-            etiqueta="Emitida",
-            initial=True,
-            valid=True,
-        ),
-        "mentoria_declinada": EstadoAsignacionMentor.objects.create(
-            codigo="declinada",
-            etiqueta="Declinada",
-            require_motivo=True,
-            terminal=True,
-        ),
-        "mentoria_propuesta": EstadoAsignacionMentor.objects.create(
-            codigo="propuesta",
-            etiqueta="Propuesta",
-            initial=True,
-        ),
-        "propuesta_activa": activa,
-        "propuesta_cerrada": cerrada,
-    }
 
 
 ########################################################################################
@@ -338,20 +219,13 @@ class Mundo:
 
 @pytest.fixture
 def mundo(db: None) -> Mundo:
-    EstadoRudiUser.objects.create(codigo="activa", etiqueta="Activa", initial=True)
-
     return Mundo(
         admin=ApiUser.objects.create_user(
             email="admin@unit.example.com",
             password="x",
             username="admin",
         ),
-        estados=Estados(
-            **estados_actividad(),
-            **estados_inscripcion(),
-            **estados_participacion(),
-            **estados_resto(),
-        ),
+        estados=seeded(),
         premio=TipoReconocimiento.objects.create(codigo="premio", etiqueta="Premio"),
         rol=RolParticipacion.objects.create(codigo="participante", etiqueta="Rol"),
         tipo=TipoActividad.objects.create(codigo="hackathon", etiqueta="Hackathon"),

@@ -20,6 +20,7 @@ def resolve_estado_activo() -> EstadoRudiUser:
         EstadoRudiUser.objects
         .filter(
             allow_ingreso=True,
+            allow_inscripcion=False,
             is_active=True,
             terminal=False,
         )
