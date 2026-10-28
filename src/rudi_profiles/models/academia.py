@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
+@track_table()
 class Facultad(RudiCatalogo):
     abreviacion = CharField(db_default="", default="", max_length=30)
 
@@ -32,6 +33,7 @@ class Facultad(RudiCatalogo):
 ########################################################################################
 
 
+@track_table()
 class Carrera(RudiCatalogo):
     facultad = ForeignKey(
         on_delete=RESTRICT,

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from django.db.models import BooleanField, CharField
 from pgtrigger import Before, Insert, Trigger, Update
 
+from api_utils.db import track_table
 from api_utils.strings import normalize_trigger
 
 from .base import RudiCatalogo
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
+@track_table()
 class TipoIdentificador(RudiCatalogo):
     descripcion = None
 

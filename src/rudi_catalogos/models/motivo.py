@@ -9,6 +9,7 @@ from django.db.models import (
 )
 from pgtrigger import ReadOnly, Trigger
 
+from api_utils.db import track_table
 from rudi_catalogos.enums import MotivoAmbitoTypes, MotivoVisibilidadTypes
 
 from .base import RudiCatalogo
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
+@track_table()
 class Motivo(RudiCatalogo):
     descripcion = None
 

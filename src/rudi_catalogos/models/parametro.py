@@ -15,6 +15,7 @@ from django.db.models.expressions import RawSQL
 from django.db.models.functions import JSONObject
 from pgtrigger import Before, Insert, Trigger, Update
 
+from api_utils.db import track_table
 from api_utils.strings import normalize_trigger
 from rudi_catalogos.enums import ParametroGrupoTypes, ParametroTypes
 
@@ -112,6 +113,7 @@ END;
 ########################################################################################
 
 
+@track_table()
 class Parametro(RudiCatalogo):
     etiqueta = None
 

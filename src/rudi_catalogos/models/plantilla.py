@@ -5,6 +5,7 @@ from django.db.models import CharField, CheckConstraint, Q, TextField
 from django.db.models.expressions import Value
 from pgtrigger import AnyChange, Before, Insert, Trigger, Update
 
+from api_utils.db import track_table
 from api_utils.strings import normalize_trigger
 
 from .base import RudiCatalogo
@@ -60,6 +61,7 @@ END;
 ########################################################################################
 
 
+@track_table()
 class PlantillaMensaje(RudiCatalogo):
     descripcion = None
 

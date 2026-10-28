@@ -4,6 +4,7 @@ from django.db.models import CharField, CheckConstraint, Q, TextField, UniqueCon
 from pgtrigger import ReadOnly, Trigger
 
 from api_core.models.base import ApiSoftDeleteModel
+from api_utils.db import track_table
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -40,21 +41,26 @@ class RudiCatalogo(ApiSoftDeleteModel):
 ########################################################################################
 
 
+@track_table()
 class AreaExperiencia(RudiCatalogo):
     pass
 
 
+@track_table()
 class RolParticipacion(RudiCatalogo):
     pass
 
 
+@track_table()
 class TipoActividad(RudiCatalogo):
     pass
 
 
+@track_table()
 class TipoMentor(RudiCatalogo):
     pass
 
 
+@track_table()
 class TipoReconocimiento(RudiCatalogo):
     pass
