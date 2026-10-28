@@ -14,7 +14,7 @@ from django.db.models import (
 )
 from pgtrigger import ReadOnly
 
-from rudi_core.models import RudiSoftDeleteModel
+from api_core.models.base import ApiSoftDeleteModel
 from rudi_estados.enums import ActorTypes
 
 from .mixins import RequireMotivoFieldMixin, SourceFieldMixin
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
-class RudiEstado(RudiSoftDeleteModel):
+class RudiEstado(ApiSoftDeleteModel):
     initial = BooleanField(db_default=False, default=False)
     terminal = BooleanField(db_default=False, default=False)
 
@@ -35,7 +35,7 @@ class RudiEstado(RudiSoftDeleteModel):
     etiqueta = CharField(max_length=50)
     descripcion = TextField(db_default="", default="")
 
-    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
@@ -60,7 +60,7 @@ class RudiEstado(RudiSoftDeleteModel):
         )
 
         triggers: Sequence[Trigger] = (
-            *RudiSoftDeleteModel.Meta.triggers,
+            *ApiSoftDeleteModel.Meta.triggers,
             ReadOnly(fields=["codigo"], name="trg_readonly_codigo"),
         )
 
@@ -84,12 +84,12 @@ class RudiSourceAwareEstado(RudiEstado, SourceFieldMixin):
 ########################################################################################
 
 
-class RudiTransicion(RudiSoftDeleteModel, RequireMotivoFieldMixin):
+class RudiTransicion(ApiSoftDeleteModel, RequireMotivoFieldMixin):
     require_descripcion = BooleanField(db_default=False, default=False)
 
     actor = CharField(max_length=20)
 
-    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (

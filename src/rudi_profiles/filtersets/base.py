@@ -2,12 +2,12 @@ from typing import TYPE_CHECKING, Final
 
 from django_filters import (
     DateTimeFromToRangeFilter,
-    FilterSet,
     OrderingFilter,
     UUIDFilter,
 )
 
 from api_core.filters import LoweredSearchFilter
+from api_core.filtersets import ApiFilterSet
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -23,9 +23,7 @@ PROFILE_SEARCH: Final[Sequence[str]] = (
 ########################################################################################
 
 
-class RudiProfileFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class RudiProfileFilterSet(ApiFilterSet):
     user = UUIDFilter(field_name="user__id")
 
     verificado_at = DateTimeFromToRangeFilter()
@@ -34,5 +32,5 @@ class RudiProfileFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("created_at", "verificado_at"))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
+        pass

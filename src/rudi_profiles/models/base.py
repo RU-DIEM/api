@@ -4,8 +4,8 @@ from django.db.models import RESTRICT, DateTimeField, Index, OneToOneField
 from django.db.models.functions import Now
 from django.utils.timezone import now
 
+from api_core.models.base import ApiProtectedModel
 from rudi_auth.models import RudiUser
-from rudi_core.models import RudiProtectedModel
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
-class RudiProfile(RudiProtectedModel):
+class RudiProfile(ApiProtectedModel):
     user = OneToOneField(
         on_delete=RESTRICT,
         related_name="%(class)s",
@@ -22,10 +22,10 @@ class RudiProfile(RudiProtectedModel):
 
     verificado_at = DateTimeField(db_default=Now(), default=now)
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         indexes: Sequence[Index] = (
-            *RudiProtectedModel.Meta.indexes,
+            *ApiProtectedModel.Meta.indexes,
             Index(fields=["verificado_at"], name="idx_%(class)s_verificadoat"),
         )

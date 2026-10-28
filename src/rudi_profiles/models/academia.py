@@ -14,9 +14,9 @@ from django.db.models import (
 )
 from django.db.models.functions import Upper
 
+from api_core.models.base import ApiSoftDeleteModel
 from api_utils.db import ImmutableUnaccent, track_table
 from rudi_catalogos.models.base import RudiCatalogo
-from rudi_core.models import RudiSoftDeleteModel
 from rudi_profiles.enums import InstitucionTypes
 
 if TYPE_CHECKING:
@@ -62,13 +62,13 @@ class Carrera(RudiCatalogo):
 
 
 @track_table()
-class Institucion(RudiSoftDeleteModel):
+class Institucion(ApiSoftDeleteModel):
     nombre = CharField(max_length=200)
     tipo = CharField(max_length=30)
 
     normalizada_at = DateTimeField(null=True)
 
-    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(tipo__in=InstitucionTypes.values),
@@ -85,7 +85,7 @@ class Institucion(RudiSoftDeleteModel):
         )
 
         indexes: Sequence[Index] = (
-            *RudiSoftDeleteModel.Meta.indexes,
+            *ApiSoftDeleteModel.Meta.indexes,
             Index(
                 condition=Q(normalizada_at__isnull=True),
                 fields=["created_at"],

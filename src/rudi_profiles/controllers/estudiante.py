@@ -2,17 +2,15 @@ from typing import ClassVar
 
 from api_core.controllers.models import (
     ModelListAllController,
+    ModelListController,
     ModelReadOnlyDetailController,
-)
-from api_core.controllers.serializers import CustomPydanticFastSerializer
-from api_core.schemas.pagination import Paginated
-from api_core.services.operations import CreateOperation
-from rudi_core.controllers import (
-    RelationListController,
     ScopedDetailController,
     ScopedListController,
 )
-from rudi_core.schemas import ProfileScopedPath
+from api_core.controllers.serializers import CustomPydanticFastSerializer
+from api_core.schemas.factories import build_scoped_path
+from api_core.schemas.pagination import Paginated
+from api_core.services.operations import CreateOperation
 from rudi_profiles.filtersets.estudiante import (
     EstudianteCarreraFilterSet,
     EstudianteProfileFilterSet,
@@ -49,7 +47,7 @@ class EstudianteProfileDetailController(
 
 
 class EstudianteProfileListController(
-    RelationListController[
+    ModelListController[
         CustomPydanticFastSerializer,
         EstudianteProfile,
         EstudianteProfileFilterSet,
@@ -88,11 +86,10 @@ class EstudianteCarreraDetailController(
         EstudianteCarreraGet,
         EstudianteCarreraPut,
         EstudianteCarreraPatch,
-        ProfileScopedPath,
+        build_scoped_path(EstudianteCarrera, "profile"),  # ty: ignore[invalid-type-form]
     ],
 ):
     parent_field: ClassVar[str] = "profile"
-    parent_param: ClassVar[str] = "profile_id"
 
 
 ########################################################################################
@@ -110,4 +107,3 @@ class EstudianteCarreraListController(
     ],
 ):
     parent_field: ClassVar[str] = "profile"
-    parent_param: ClassVar[str] = "profile_id"

@@ -5,6 +5,7 @@ from typing import ClassVar, override
 from django.db.models import QuerySet
 from dmr import Body
 
+from api_core.controllers.mixins import ReadOnlyMixin
 from api_core.controllers.models import (
     ModelController,
     ModelReadOnlyListController,
@@ -26,9 +27,7 @@ from rudi_auth.schemas.identificador import (
     IdentificadorUserFilterQuery,
     IdentificadorUserGet,
 )
-from rudi_auth.schemas.user import RudiUserGet, RudiUserPatch
-from rudi_core.mixins import ReadOnlyMixin
-from rudi_core.schemas import UserPath
+from rudi_auth.schemas.user import RudiUserGet, RudiUserPatch, UserPath
 
 ########################################################################################
 

@@ -1,7 +1,18 @@
-from api_core.controllers.models import ModelListAllController
+from typing import ClassVar
+
+from api_core.controllers.models import (
+    ModelListAllController,
+    ModelListController,
+    ModelReadUpdateDetailController,
+)
 from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.schemas.pagination import Paginated
-from rudi_core.controllers import RelationDetailController, RelationListController
+from api_core.services.operations import (
+    CreateOperation,
+    ForeignKeyCreateOperation,
+    ForeignKeyUpdateOperation,
+    UpdateOperation,
+)
 from rudi_profiles.filtersets.externo import ExternoProfileFilterSet
 from rudi_profiles.models import ExternoProfile
 from rudi_profiles.schemas.externo import (
@@ -18,7 +29,7 @@ from rudi_profiles.schemas.externo import (
 
 
 class ExternoProfileDetailController(
-    RelationDetailController[
+    ModelReadUpdateDetailController[
         CustomPydanticFastSerializer,
         ExternoProfile,
         ExternoProfileGet,
@@ -26,14 +37,14 @@ class ExternoProfileDetailController(
         ExternoProfilePatch,
     ],
 ):
-    pass
+    update_operation: ClassVar[type[UpdateOperation]] = ForeignKeyUpdateOperation
 
 
 ########################################################################################
 
 
 class ExternoProfileListController(
-    RelationListController[
+    ModelListController[
         CustomPydanticFastSerializer,
         ExternoProfile,
         ExternoProfileFilterSet,
@@ -43,7 +54,7 @@ class ExternoProfileListController(
         Paginated[ExternoProfileGet],
     ],
 ):
-    pass
+    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
 
 
 ########################################################################################

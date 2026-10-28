@@ -22,10 +22,14 @@ from pgtrigger import (
     Update,
 )
 
+from api_core.models.base import (
+    ApiProtectedModel,
+    remove_default_touch,
+    touch_updatedat_trigger,
+)
 from api_utils.db import track_table
 from api_utils.strings import normalize_trigger
 from rudi_catalogos.models import TipoIdentificador
-from rudi_core.models import RudiProtectedModel
 
 from .user import RudiUser
 
@@ -104,7 +108,7 @@ class NormalizarIdentificador(DjangoFunc):
 
 
 @track_table()
-class IdentificadorUser(RudiProtectedModel):
+class IdentificadorUser(ApiProtectedModel):
     user = ForeignKey(
         on_delete=RESTRICT,
         related_name="identificadores",
@@ -135,7 +139,7 @@ class IdentificadorUser(RudiProtectedModel):
         to=settings.AUTH_USER_MODEL,
     )
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=(
@@ -167,7 +171,8 @@ class IdentificadorUser(RudiProtectedModel):
         )
 
         triggers: Sequence[Trigger] = (
-            *RudiProtectedModel.Meta.triggers,
+            *remove_default_touch(ApiProtectedModel.Meta.triggers),
+            touch_updatedat_trigger(exclude_generated=["valor_normalizado"]),
             Trigger(
                 name="trg_identificadoruser_regex",
                 operation=(Insert | Update),

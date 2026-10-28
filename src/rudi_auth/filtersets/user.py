@@ -3,27 +3,22 @@ from typing import TYPE_CHECKING
 from django_filters import (
     BooleanFilter,
     DateFromToRangeFilter,
-    FilterSet,
     OrderingFilter,
-    UUIDFilter,
 )
 
 from api_core.filters import LoweredFilter, LoweredSearchFilter, TypedLoweredFilter
+from api_core.filtersets import ApiFilterSet
 from rudi_auth.models import RudiUser
 from rudi_catalogos.enums import Etnias, Generos
 from rudi_estados.enums import InputSourceTypes
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from django.db.models import Model
 
 ########################################################################################
 
 
-class RudiUserFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class RudiUserFilterSet(ApiFilterSet):
     estado = LoweredFilter(field_name="estado__codigo")
 
     origen = TypedLoweredFilter(enum=InputSourceTypes)
@@ -46,6 +41,5 @@ class RudiUserFilterSet(FilterSet):
         fields=("created_at", "user__first_name", "user__last_name"),
     )
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = RudiUser

@@ -1,3 +1,4 @@
+from api_core.controllers.mixins import OpenReadMixin
 from api_core.controllers.models import (
     ModelDetailController,
     ModelListAllController,
@@ -16,7 +17,6 @@ from rudi_catalogos.schemas.actividad import (
     TipoActividadPost,
     TipoActividadPut,
 )
-from rudi_core.mixins import OpenReadMixin
 
 ########################################################################################
 

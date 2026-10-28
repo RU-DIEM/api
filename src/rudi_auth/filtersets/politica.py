@@ -3,25 +3,20 @@ from typing import TYPE_CHECKING
 from django_filters import (
     BooleanFilter,
     DateFromToRangeFilter,
-    FilterSet,
     OrderingFilter,
-    UUIDFilter,
 )
 
 from api_core.filters import LoweredFilter, LoweredSearchFilter
+from api_core.filtersets import ApiFilterSet
 from rudi_auth.models import PoliticaPrivacidad
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from django.db.models import Model, QuerySet
 
 ########################################################################################
 
 
-class PoliticaPrivacidadFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class PoliticaPrivacidadFilterSet(ApiFilterSet):
     version = LoweredFilter()
     titulo = LoweredFilter()
 
@@ -33,8 +28,7 @@ class PoliticaPrivacidadFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("created_at", "vigente_desde"))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = PoliticaPrivacidad
 
     def filter_vigente(  # ruff: ignore[no-self-use]

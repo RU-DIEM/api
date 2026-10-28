@@ -15,21 +15,24 @@ from django.db.models import (
     Value,
 )
 
+from api_core.models.base import ApiProtectedModel
 from api_utils.db import track_table
 from rudi_auth.enums import ConsentimientoCanalTypes
-from rudi_core.models import RudiProtectedModel
 from rudi_estados.models import EstadoConsentimiento
+from rudi_estados.triggers import estado_lifecycle_triggers
 
 from .user import RudiUser
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from pgtrigger import Trigger
+
 ########################################################################################
 
 
 @track_table()
-class PoliticaPrivacidad(RudiProtectedModel):
+class PoliticaPrivacidad(ApiProtectedModel):
     version = CharField(max_length=20)
     titulo = CharField(max_length=200)
     texto = TextField()
@@ -37,7 +40,7 @@ class PoliticaPrivacidad(RudiProtectedModel):
     vigente_desde = DateField()
     vigente_hasta = DateField(null=True)
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(version__regex=r"^\d+\.\d+$"),
@@ -67,7 +70,7 @@ class PoliticaPrivacidad(RudiProtectedModel):
 
 
 @track_table()
-class ConsentimientoDatos(RudiProtectedModel):
+class ConsentimientoDatos(ApiProtectedModel):
     user = ForeignKey(
         on_delete=RESTRICT,
         related_name="consentimientos",
@@ -93,7 +96,7 @@ class ConsentimientoDatos(RudiProtectedModel):
 
     evidencia_url = URLField(db_default="", default="", max_length=500)
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(canal__in=ConsentimientoCanalTypes.values),
@@ -104,4 +107,12 @@ class ConsentimientoDatos(RudiProtectedModel):
                 name="chk_%(class)s_retiro",
             ),
             UniqueConstraint(fields=["user"], name="unq_%(class)s_user"),
+        )
+
+        triggers: Sequence[Trigger] = (
+            *ApiProtectedModel.Meta.triggers,
+            *estado_lifecycle_triggers(
+                entidad="consentimientodatos",
+                model=EstadoConsentimiento,
+            ),
         )

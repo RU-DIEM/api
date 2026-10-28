@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from django_filters import BooleanFilter, FilterSet, OrderingFilter, UUIDFilter
+from django_filters import BooleanFilter, OrderingFilter
 
 from api_core.filters import LoweredFilter, LoweredSearchFilter, TypedLoweredFilter
+from api_core.filtersets import ApiSoftDeleteFilterSet
 from rudi_catalogos.filtersets.base import RudiCatalogoFilterSet
 from rudi_profiles.enums import InstitucionTypes
 from rudi_profiles.models import Carrera, Facultad, Institucion
@@ -37,14 +38,10 @@ class CarreraFilterSet(RudiCatalogoFilterSet):
 ########################################################################################
 
 
-class InstitucionFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class InstitucionFilterSet(ApiSoftDeleteFilterSet):
     nombre = LoweredFilter()
 
     tipo = TypedLoweredFilter(enum=InstitucionTypes)
-
-    is_active = BooleanFilter()
 
     pendiente = BooleanFilter(method="filter_pendiente")
 
@@ -52,8 +49,7 @@ class InstitucionFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("created_at", "nombre"))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiSoftDeleteFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = Institucion
 
     def filter_pendiente(  # ruff: ignore[no-self-use]

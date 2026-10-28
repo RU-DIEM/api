@@ -16,7 +16,6 @@ from pgtrigger import (
 from api_auth.models import ApiUser
 from api_utils.strings import normalize_trigger
 from rudi_auth.models import RudiUser
-from rudi_catalogos.models import Parametro
 from rudi_estados.models import EstadoRudiUser
 
 from .academia import Carrera, Facultad, Institucion
@@ -100,12 +99,7 @@ BEGIN
     ) THEN
         RETURN NEW;
     END IF;
-    SELECT param.valor #>> '{{}}'
-    INTO dominio
-    FROM {Parametro._meta.db_table}
-    AS param
-    WHERE param.codigo = 'registro.dominio_institucional'
-    AND param.is_active;
+    dominio := rudi_parametro('registro.dominio_institucional') #>> '{{}}';
     IF dominio IS NULL OR dominio = '' THEN
         RETURN NEW;
     END IF;

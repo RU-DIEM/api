@@ -3,12 +3,11 @@ from typing import TYPE_CHECKING
 from django_filters import (
     BooleanFilter,
     DateTimeFromToRangeFilter,
-    FilterSet,
     OrderingFilter,
-    UUIDFilter,
 )
 
 from api_core.filters import LoweredFilter, TypedLoweredFilter
+from api_core.filtersets import ApiFilterSet
 from rudi_catalogos.enums import NivelesCarrera
 from rudi_profiles.models import EstudianteCarrera, EstudianteProfile
 
@@ -33,9 +32,7 @@ class EstudianteProfileFilterSet(RudiProfileFilterSet):
 ########################################################################################
 
 
-class EstudianteCarreraFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class EstudianteCarreraFilterSet(ApiFilterSet):
     carrera = LoweredFilter(field_name="carrera__codigo")
 
     nivel = TypedLoweredFilter(enum=NivelesCarrera)
@@ -48,8 +45,7 @@ class EstudianteCarreraFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("created_at", "iniciada_en"))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = EstudianteCarrera
 
     def filter_vigente(  # ruff: ignore[no-self-use]

@@ -1,7 +1,18 @@
-from api_core.controllers.models import ModelListAllController
+from typing import ClassVar
+
+from api_core.controllers.models import (
+    ModelListAllController,
+    ModelListController,
+    ModelReadUpdateDetailController,
+)
 from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.schemas.pagination import Paginated
-from rudi_core.controllers import RelationDetailController, RelationListController
+from api_core.services.operations import (
+    CreateOperation,
+    ForeignKeyCreateOperation,
+    ForeignKeyUpdateOperation,
+    UpdateOperation,
+)
 from rudi_profiles.filtersets.docente import DocenteProfileFilterSet
 from rudi_profiles.models import DocenteProfile
 from rudi_profiles.schemas.docente import (
@@ -18,7 +29,7 @@ from rudi_profiles.schemas.docente import (
 
 
 class DocenteProfileDetailController(
-    RelationDetailController[
+    ModelReadUpdateDetailController[
         CustomPydanticFastSerializer,
         DocenteProfile,
         DocenteProfileGet,
@@ -26,14 +37,14 @@ class DocenteProfileDetailController(
         DocenteProfilePatch,
     ],
 ):
-    pass
+    update_operation: ClassVar[type[UpdateOperation]] = ForeignKeyUpdateOperation
 
 
 ########################################################################################
 
 
 class DocenteProfileListController(
-    RelationListController[
+    ModelListController[
         CustomPydanticFastSerializer,
         DocenteProfile,
         DocenteProfileFilterSet,
@@ -43,7 +54,7 @@ class DocenteProfileListController(
         Paginated[DocenteProfileGet],
     ],
 ):
-    pass
+    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
 
 
 ########################################################################################

@@ -16,12 +16,13 @@ from django.db.models import (
 from pgtrigger import After, Before, Insert, ReadOnly, Trigger, Update
 from phonenumber_field.modelfields import PhoneNumberField
 
+from api_core.models.base import ApiProtectedModel
 from api_utils.db import track_table
 from api_utils.strings import normalize_trigger
 from rudi_catalogos.enums import Etnias, Generos, TallasCamisa
-from rudi_core.models import RudiProtectedModel
 from rudi_estados.enums import InputSourceTypes
 from rudi_estados.models import EstadoRudiUser
+from rudi_estados.triggers import estado_lifecycle_triggers
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -97,7 +98,7 @@ END;
 
 
 @track_table()
-class RudiUser(RudiProtectedModel):
+class RudiUser(ApiProtectedModel):
     user = OneToOneField(
         on_delete=RESTRICT,
         related_name="rudi",
@@ -122,7 +123,7 @@ class RudiUser(RudiProtectedModel):
 
     anonimizado_at = DateTimeField(null=True)
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(origen__in=InputSourceTypes.values),
@@ -152,7 +153,7 @@ class RudiUser(RudiProtectedModel):
         )
 
         indexes: Sequence[Index] = (
-            *RudiProtectedModel.Meta.indexes,
+            *ApiProtectedModel.Meta.indexes,
             Index(fields=["estado"], name="idx_%(class)s_estado"),
             Index(
                 condition=Q(fecha_nacimiento__isnull=False),
@@ -162,8 +163,9 @@ class RudiUser(RudiProtectedModel):
         )
 
         triggers: Sequence[Trigger] = (
-            *RudiProtectedModel.Meta.triggers,
+            *ApiProtectedModel.Meta.triggers,
             ReadOnly(fields=["origen", "user"], name="trg_readonly_origen_user"),
+            *estado_lifecycle_triggers(entidad="rudiuser", model=EstadoRudiUser),
             Trigger(
                 name="trg_rudiuser_anonimizacion",
                 operation=Update,

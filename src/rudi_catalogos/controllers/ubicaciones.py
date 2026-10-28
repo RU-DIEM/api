@@ -1,3 +1,4 @@
+from api_core.controllers.mixins import ReadOnlyMixin
 from api_core.controllers.models import ModelListAllController
 from api_core.controllers.serializers import CustomPydanticFastSerializer
 from rudi_catalogos.filtersets.ubicaciones import (
@@ -11,7 +12,6 @@ from rudi_catalogos.schemas.ubicaciones import (
     MunicipioFilterAllQuery,
     MunicipioGet,
 )
-from rudi_core.mixins import ReadOnlyMixin
 
 ########################################################################################
 

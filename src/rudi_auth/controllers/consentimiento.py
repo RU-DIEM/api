@@ -13,8 +13,8 @@ from rudi_auth.schemas.consentimiento import (
     ConsentimientoDatosGet,
     ConsentimientoRetiroPost,
 )
+from rudi_auth.schemas.user import UserPath
 from rudi_auth.services.consentimiento import retirar_consentimiento
-from rudi_core.schemas import UserPath
 
 ########################################################################################
 

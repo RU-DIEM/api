@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from django_filters import BooleanFilter, FilterSet, OrderingFilter, UUIDFilter
+from django_filters import BooleanFilter, OrderingFilter, UUIDFilter
 
 from api_core.filters import LoweredFilter, LoweredSearchFilter, TypedLoweredFilter
+from api_core.filtersets import ApiFilterSet
 from rudi_catalogos.enums import NivelesAcademicos
 from rudi_profiles.models import (
     MentorAreaExperiencia,
@@ -51,26 +52,21 @@ class MentorProfileFilterSet(RudiProfileFilterSet):
 ########################################################################################
 
 
-class MentorAreaExperienciaFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class MentorAreaExperienciaFilterSet(ApiFilterSet):
     area = LoweredFilter(field_name="area__codigo")
 
     is_main = BooleanFilter()
 
     order = OrderingFilter(fields=("created_at",))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = MentorAreaExperiencia
 
 
 ########################################################################################
 
 
-class MentorCertificacionFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class MentorCertificacionFilterSet(ApiFilterSet):
     nombre = LoweredFilter()
     institucion = LoweredFilter()
 
@@ -78,6 +74,5 @@ class MentorCertificacionFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("created_at", "year"))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = MentorCertificacion

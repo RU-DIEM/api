@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from django.db.models import RESTRICT, CharField, F, ForeignKey, UniqueConstraint
 from django.db.models.functions import Upper
 
+from api_core.models.base import ApiSoftDeleteModel
 from api_utils.db import ImmutableUnaccent
-from rudi_core.models import RudiSoftDeleteModel
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -12,10 +12,10 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
-class Departamento(RudiSoftDeleteModel):
+class Departamento(ApiSoftDeleteModel):
     nombre = CharField(max_length=30)
 
-    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 Upper(ImmutableUnaccent("nombre")),
@@ -24,7 +24,7 @@ class Departamento(RudiSoftDeleteModel):
         )
 
 
-class Municipio(RudiSoftDeleteModel):
+class Municipio(ApiSoftDeleteModel):
     departamento = ForeignKey(
         on_delete=RESTRICT,
         related_name="municipios",
@@ -33,7 +33,7 @@ class Municipio(RudiSoftDeleteModel):
 
     nombre = CharField(max_length=30)
 
-    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 F("departamento"),

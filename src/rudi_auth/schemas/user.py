@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Annotated, Literal
+from uuid import UUID
 
 from pydantic import StringConstraints
 
@@ -20,6 +21,10 @@ from rudi_estados.schemas import EstadoRudiUserGet
 from .types import TelefonoNI
 
 ########################################################################################
+
+
+class UserPath(DTO):
+    user_id: UUID
 
 
 ########################################################################################

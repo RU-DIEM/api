@@ -5,18 +5,25 @@ from typing import ClassVar
 from dmr import Path, modify
 
 from api_auth.services.permissions import T_CHANGE_PERM
-from api_core.controllers.models import ModelController, ModelListAllController
-from api_core.controllers.serializers import CustomPydanticFastSerializer
-from api_core.schemas.pagination import Paginated
-from api_core.schemas.path import UuidInstancePath
-from api_core.services.operations import FlatRetrieveOperation
-from rudi_core.controllers import (
-    RelationDetailController,
-    RelationListController,
+from api_core.controllers.models import (
+    ModelController,
+    ModelListAllController,
+    ModelListController,
+    ModelReadUpdateDetailController,
     ScopedDetailController,
     ScopedListController,
 )
-from rudi_core.schemas import ProfileScopedPath
+from api_core.controllers.serializers import CustomPydanticFastSerializer
+from api_core.schemas.factories import build_scoped_path
+from api_core.schemas.pagination import Paginated
+from api_core.schemas.path import UuidInstancePath
+from api_core.services.operations import (
+    CreateOperation,
+    FlatRetrieveOperation,
+    ForeignKeyCreateOperation,
+    ForeignKeyUpdateOperation,
+    UpdateOperation,
+)
 from rudi_profiles.filtersets.mentor import (
     MentorAreaExperienciaFilterSet,
     MentorCertificacionFilterSet,
@@ -52,7 +59,7 @@ from rudi_profiles.services.mentor import confirmar_mentor
 
 
 class MentorProfileDetailController(
-    RelationDetailController[
+    ModelReadUpdateDetailController[
         CustomPydanticFastSerializer,
         MentorProfile,
         MentorProfileGet,
@@ -60,14 +67,14 @@ class MentorProfileDetailController(
         MentorProfilePatch,
     ],
 ):
-    pass
+    update_operation: ClassVar[type[UpdateOperation]] = ForeignKeyUpdateOperation
 
 
 ########################################################################################
 
 
 class MentorProfileListController(
-    RelationListController[
+    ModelListController[
         CustomPydanticFastSerializer,
         MentorProfile,
         MentorProfileFilterSet,
@@ -77,7 +84,7 @@ class MentorProfileListController(
         Paginated[MentorProfileGet],
     ],
 ):
-    pass
+    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
 
 
 ########################################################################################
@@ -127,11 +134,10 @@ class MentorAreaExperienciaDetailController(
         MentorAreaExperienciaGet,
         MentorAreaExperienciaPut,
         MentorAreaExperienciaPatch,
-        ProfileScopedPath,
+        build_scoped_path(MentorAreaExperiencia, "profile"),  # ty: ignore[invalid-type-form]
     ],
 ):
     parent_field: ClassVar[str] = "profile"
-    parent_param: ClassVar[str] = "profile_id"
 
 
 ########################################################################################
@@ -149,7 +155,6 @@ class MentorAreaExperienciaListController(
     ],
 ):
     parent_field: ClassVar[str] = "profile"
-    parent_param: ClassVar[str] = "profile_id"
 
 
 ########################################################################################
@@ -162,11 +167,10 @@ class MentorCertificacionDetailController(
         MentorCertificacionGet,
         MentorCertificacionPut,
         MentorCertificacionPatch,
-        ProfileScopedPath,
+        build_scoped_path(MentorCertificacion, "profile"),  # ty: ignore[invalid-type-form]
     ],
 ):
     parent_field: ClassVar[str] = "profile"
-    parent_param: ClassVar[str] = "profile_id"
 
 
 ########################################################################################
@@ -184,4 +188,3 @@ class MentorCertificacionListController(
     ],
 ):
     parent_field: ClassVar[str] = "profile"
-    parent_param: ClassVar[str] = "profile_id"

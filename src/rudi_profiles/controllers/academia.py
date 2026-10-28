@@ -5,18 +5,23 @@ from typing import ClassVar
 from dmr import Path, modify
 
 from api_auth.services.permissions import T_CHANGE_PERM
+from api_core.controllers.mixins import OpenCreateMixin, OpenReadMixin
 from api_core.controllers.models import (
     ModelController,
     ModelDetailController,
     ModelListAllController,
+    ModelListController,
 )
 from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.schemas.pagination import Paginated
 from api_core.schemas.path import UuidInstancePath
-from api_core.services.operations import FlatRetrieveOperation, UpdateOperation
-from rudi_core.controllers import RelationListController
-from rudi_core.mixins import OpenReadMixin, OpenWriteMixin
-from rudi_core.services import RelationUpdateOperation
+from api_core.services.operations import (
+    CreateOperation,
+    FlatRetrieveOperation,
+    ForeignKeyCreateOperation,
+    ForeignKeyUpdateOperation,
+    UpdateOperation,
+)
 from rudi_profiles.filtersets.academia import (
     CarreraFilterSet,
     FacultadFilterSet,
@@ -66,7 +71,7 @@ class FacultadDetailController(
 
 class FacultadListController(
     OpenReadMixin,
-    RelationListController[
+    ModelListController[
         CustomPydanticFastSerializer,
         Facultad,
         FacultadFilterSet,
@@ -76,7 +81,7 @@ class FacultadListController(
         Paginated[FacultadGet],
     ],
 ):
-    pass
+    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
 
 
 class FacultadListAllController(
@@ -106,12 +111,12 @@ class CarreraDetailController(
         CarreraPatch,
     ],
 ):
-    update_operation: ClassVar[type[UpdateOperation]] = RelationUpdateOperation
+    update_operation: ClassVar[type[UpdateOperation]] = ForeignKeyUpdateOperation
 
 
 class CarreraListController(
     OpenReadMixin,
-    RelationListController[
+    ModelListController[
         CustomPydanticFastSerializer,
         Carrera,
         CarreraFilterSet,
@@ -121,7 +126,7 @@ class CarreraListController(
         Paginated[CarreraGet],
     ],
 ):
-    pass
+    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
 
 
 class CarreraListAllController(
@@ -142,7 +147,7 @@ class CarreraListAllController(
 
 
 class InstitucionDetailController(
-    OpenWriteMixin,
+    OpenCreateMixin,
     ModelDetailController[
         CustomPydanticFastSerializer,
         Institucion,
@@ -155,8 +160,8 @@ class InstitucionDetailController(
 
 
 class InstitucionListController(
-    OpenWriteMixin,
-    RelationListController[
+    OpenCreateMixin,
+    ModelListController[
         CustomPydanticFastSerializer,
         Institucion,
         InstitucionFilterSet,
@@ -166,11 +171,11 @@ class InstitucionListController(
         Paginated[InstitucionGet],
     ],
 ):
-    pass
+    create_operation: ClassVar[type[CreateOperation]] = ForeignKeyCreateOperation
 
 
 class InstitucionListAllController(
-    OpenWriteMixin,
+    OpenCreateMixin,
     ModelListAllController[
         CustomPydanticFastSerializer,
         Institucion,

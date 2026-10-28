@@ -1,6 +1,8 @@
 from typing import ClassVar
 
+from api_core.controllers.models import ScopedDetailController, ScopedListController
 from api_core.controllers.serializers import CustomPydanticFastSerializer
+from api_core.schemas.factories import build_scoped_path
 from api_core.schemas.pagination import Paginated
 from rudi_auth.filtersets.identificador import IdentificadorUserFilterSet
 from rudi_auth.models import IdentificadorUser
@@ -11,8 +13,6 @@ from rudi_auth.schemas.identificador import (
     IdentificadorUserPost,
     IdentificadorUserPut,
 )
-from rudi_core.controllers import ScopedDetailController, ScopedListController
-from rudi_core.schemas import UserScopedPath
 
 ########################################################################################
 
@@ -24,11 +24,10 @@ class IdentificadorUserDetailController(
         IdentificadorUserGet,
         IdentificadorUserPut,
         IdentificadorUserPatch,
-        UserScopedPath,
+        build_scoped_path(IdentificadorUser, "user"),  # ty: ignore[invalid-type-form]
     ],
 ):
     parent_field: ClassVar[str] = "user"
-    parent_param: ClassVar[str] = "user_id"
 
 
 ########################################################################################
@@ -46,4 +45,3 @@ class IdentificadorUserListController(
     ],
 ):
     parent_field: ClassVar[str] = "user"
-    parent_param: ClassVar[str] = "user_id"

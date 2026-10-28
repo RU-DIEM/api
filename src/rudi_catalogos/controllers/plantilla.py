@@ -1,3 +1,4 @@
+from api_core.controllers.mixins import OpenReadMixin
 from api_core.controllers.models import (
     ModelDetailController,
     ModelListAllController,
@@ -16,7 +17,6 @@ from rudi_catalogos.schemas.plantilla import (
     PlantillaMensajePost,
     PlantillaMensajePut,
 )
-from rudi_core.mixins import OpenReadMixin
 
 ########################################################################################
 

@@ -2,15 +2,20 @@ from collections.abc import Sequence
 from http import HTTPMethod
 from typing import ClassVar
 
-from api_core.controllers.mixins import PublicControllerMixin
+from api_core.controllers.mixins import OpenReadMixin, PublicControllerMixin
 from api_core.controllers.models import (
     ModelController,
     ModelListAllController,
+    ModelListController,
     ModelReadUpdateDetailController,
 )
 from api_core.controllers.serializers import CustomPydanticFastSerializer
 from api_core.schemas.pagination import Paginated
-from api_core.services.operations import CreateOperation, UpdateOperation
+from api_core.services.operations import (
+    CreateOperation,
+    ForeignKeyUpdateOperation,
+    UpdateOperation,
+)
 from api_exceptions.errors import NotFoundError
 from rudi_auth.filtersets.politica import PoliticaPrivacidadFilterSet
 from rudi_auth.models import PoliticaPrivacidad
@@ -24,9 +29,6 @@ from rudi_auth.schemas.politica import (
     PoliticaPrivacidadPut,
 )
 from rudi_auth.services.politica import PoliticaCreateOperation
-from rudi_core.controllers import RelationListController
-from rudi_core.mixins import OpenReadMixin
-from rudi_core.services import RelationUpdateOperation
 
 ########################################################################################
 
@@ -41,7 +43,7 @@ class PoliticaPrivacidadDetailController(
         PoliticaPrivacidadPatch,
     ],
 ):
-    update_operation: ClassVar[type[UpdateOperation]] = RelationUpdateOperation
+    update_operation: ClassVar[type[UpdateOperation]] = ForeignKeyUpdateOperation
 
 
 ########################################################################################
@@ -49,7 +51,7 @@ class PoliticaPrivacidadDetailController(
 
 class PoliticaPrivacidadListController(
     OpenReadMixin,
-    RelationListController[
+    ModelListController[
         CustomPydanticFastSerializer,
         PoliticaPrivacidad,
         PoliticaPrivacidadFilterSet,

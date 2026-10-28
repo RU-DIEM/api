@@ -1,28 +1,23 @@
 from typing import TYPE_CHECKING
 
-from django_filters import BooleanFilter, FilterSet, OrderingFilter, UUIDFilter
+from django_filters import OrderingFilter, UUIDFilter
 
 from api_core.filters import LoweredFilter, LoweredSearchFilter, TypedChoiceFilter
+from api_core.filtersets import ApiSoftDeleteFilterSet
 from rudi_catalogos.enums import ParametroGrupoTypes, ParametroTypes
 from rudi_catalogos.models import Parametro
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from django.db.models import Model
 
 ########################################################################################
 
 
-class ParametroFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class ParametroFilterSet(ApiSoftDeleteFilterSet):
     codigo = LoweredFilter()
 
     grupo = TypedChoiceFilter(enum=ParametroGrupoTypes)
     tipo = TypedChoiceFilter(enum=ParametroTypes)
-
-    is_active = BooleanFilter()
 
     updated_by = UUIDFilter()
 
@@ -30,6 +25,5 @@ class ParametroFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("codigo", "grupo"))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiSoftDeleteFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = Parametro

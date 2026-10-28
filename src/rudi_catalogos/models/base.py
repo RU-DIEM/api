@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from django.db.models import CharField, CheckConstraint, Q, TextField, UniqueConstraint
 from pgtrigger import ReadOnly, Trigger
 
-from rudi_core.models import RudiSoftDeleteModel
+from api_core.models.base import ApiSoftDeleteModel
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -11,12 +11,12 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
-class RudiCatalogo(RudiSoftDeleteModel):
+class RudiCatalogo(ApiSoftDeleteModel):
     codigo = CharField(max_length=50)
     etiqueta = CharField(db_default="", default="", max_length=100)
     descripcion = TextField(db_default="", default="")
 
-    class Meta(RudiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiSoftDeleteModel.Meta):  # ty: ignore[invalid-attribute-override]
         abstract: bool = True
 
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
@@ -32,7 +32,7 @@ class RudiCatalogo(RudiSoftDeleteModel):
         )
 
         triggers: Sequence[Trigger] = (
-            *RudiSoftDeleteModel.Meta.triggers,
+            *ApiSoftDeleteModel.Meta.triggers,
             ReadOnly(fields=["codigo"], name="trg_readonly_codigo"),
         )
 

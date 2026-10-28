@@ -1,9 +1,9 @@
+from api_core.controllers.mixins import ReadOnlyMixin
 from api_core.controllers.models import (
     ModelListAllController,
     ModelReadOnlyDetailController,
 )
 from api_core.controllers.serializers import CustomPydanticFastSerializer
-from rudi_core.mixins import ReadOnlyMixin
 from rudi_estados.filtersets import (
     EstadoActividadFilterSet,
     EstadoAsignacionMentorFilterSet,

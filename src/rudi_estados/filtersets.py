@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from django_filters import BooleanFilter, FilterSet, OrderingFilter, UUIDFilter
+from django_filters import BooleanFilter, OrderingFilter
 
 from api_core.filters import LoweredFilter, LoweredSearchFilter
+from api_core.filtersets import ApiSoftDeleteFilterSet
 from rudi_estados.models import (
     EstadoActividad,
     EstadoAsignacionMentor,
@@ -22,22 +23,16 @@ if TYPE_CHECKING:
 ########################################################################################
 
 
-class RudiEstadoFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class RudiEstadoFilterSet(ApiSoftDeleteFilterSet):
     codigo = LoweredFilter()
     etiqueta = LoweredFilter()
 
     initial = BooleanFilter()
     terminal = BooleanFilter()
-    is_active = BooleanFilter()
 
     search = LoweredSearchFilter("codigo", "descripcion", "etiqueta")
 
     order = OrderingFilter(fields=("codigo", "etiqueta"))
-
-    class Meta:
-        fields: Sequence[str] = ()
 
 
 ########################################################################################

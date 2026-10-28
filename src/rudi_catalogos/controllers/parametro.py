@@ -2,6 +2,7 @@ from typing import ClassVar, override
 
 from dmr import Body, Path
 
+from api_core.controllers.mixins import OpenReadMixin
 from api_core.controllers.models import (
     ModelListAllController,
     ModelReadUpdateDetailController,
@@ -19,7 +20,6 @@ from rudi_catalogos.schemas.parametro import (
     ParametroPut,
 )
 from rudi_catalogos.services.parametro import ParametroUpdateOperation
-from rudi_core.mixins import OpenReadMixin
 
 ########################################################################################
 

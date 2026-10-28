@@ -20,11 +20,11 @@ from django.db.models import (
 from django.db.models.functions import Upper
 from pgtrigger import Before, Insert, Trigger, Update
 
+from api_core.models.base import ApiProtectedModel
 from api_utils.db import ImmutableUnaccent, track_table
 from api_utils.strings import normalize_trigger
 from rudi_catalogos.enums import NivelesAcademicos
 from rudi_catalogos.models import AreaExperiencia, Municipio, TipoMentor
-from rudi_core.models import RudiProtectedModel
 
 from .base import RudiProfile
 
@@ -127,7 +127,7 @@ class MentorProfile(RudiProfile):
 
 
 @track_table()
-class MentorAreaExperiencia(RudiProtectedModel):
+class MentorAreaExperiencia(ApiProtectedModel):
     profile = ForeignKey(
         on_delete=CASCADE,
         related_name="areas",
@@ -142,7 +142,7 @@ class MentorAreaExperiencia(RudiProtectedModel):
 
     is_main = BooleanField(db_default=False, default=False)
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[UniqueConstraint] = (
             UniqueConstraint(
                 fields=["profile", "area"],
@@ -160,7 +160,7 @@ class MentorAreaExperiencia(RudiProtectedModel):
 
 
 @track_table()
-class MentorCertificacion(RudiProtectedModel):
+class MentorCertificacion(ApiProtectedModel):
     profile = ForeignKey(
         on_delete=CASCADE,
         related_name="certificaciones",
@@ -174,7 +174,7 @@ class MentorCertificacion(RudiProtectedModel):
 
     enlace_url = URLField(db_default="", default="", max_length=500)
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(nombre__len__gte=2),
@@ -183,7 +183,7 @@ class MentorCertificacion(RudiProtectedModel):
         )
 
         triggers: Sequence[Trigger] = (
-            *RudiProtectedModel.Meta.triggers,
+            *ApiProtectedModel.Meta.triggers,
             Trigger(
                 name="trg_mentorcertificacion_year",
                 operation=(Insert | Update),

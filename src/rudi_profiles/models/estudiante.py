@@ -24,12 +24,11 @@ from pgtrigger import (
     Update,
 )
 
+from api_core.models.base import ApiProtectedModel
 from api_utils.db import track_table
 from api_utils.strings import normalize_trigger
 from rudi_auth.models import RudiUser
 from rudi_catalogos.enums import NivelesCarrera
-from rudi_catalogos.models import Parametro
-from rudi_core.models import RudiProtectedModel
 
 from .academia import Carrera
 from .base import RudiProfile
@@ -48,12 +47,7 @@ DECLARE
     dominio text;
     correo text;
 BEGIN
-    SELECT param.valor #>> '{{}}'
-    INTO dominio
-    FROM {Parametro._meta.db_table}
-    AS param
-    WHERE param.codigo = 'registro.dominio_institucional'
-    AND param.is_active;
+    dominio := rudi_parametro('registro.dominio_institucional') #>> '{{}}';
     IF dominio IS NULL OR dominio = '' THEN
         RETURN NEW;
     END IF;
@@ -141,7 +135,7 @@ class EstudianteProfile(RudiProfile):
 
 
 @track_table()
-class EstudianteCarrera(RudiProtectedModel):
+class EstudianteCarrera(ApiProtectedModel):
     profile = ForeignKey(
         on_delete=CASCADE,
         related_name="carreras",
@@ -161,7 +155,7 @@ class EstudianteCarrera(RudiProtectedModel):
     iniciada_en = PositiveSmallIntegerField(null=True)
     cerrada_at = DateTimeField(null=True)
 
-    class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
+    class Meta(ApiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]
         constraints: Sequence[CheckConstraint | UniqueConstraint] = (
             CheckConstraint(
                 condition=Q(nivel__in=(*NivelesCarrera.values, "")),
@@ -186,7 +180,7 @@ class EstudianteCarrera(RudiProtectedModel):
         )
 
         indexes: Sequence[Index] = (
-            *RudiProtectedModel.Meta.indexes,
+            *ApiProtectedModel.Meta.indexes,
             Index(
                 condition=Q(cerrada_at__isnull=True),
                 fields=["carrera"],
@@ -195,7 +189,7 @@ class EstudianteCarrera(RudiProtectedModel):
         )
 
         triggers: Sequence[Trigger] = (
-            *RudiProtectedModel.Meta.triggers,
+            *ApiProtectedModel.Meta.triggers,
             Trigger(
                 name="trg_estudiantecarrera_nivel",
                 operation=(Insert | Update),

@@ -1,21 +1,18 @@
 from typing import TYPE_CHECKING
 
-from django_filters import BooleanFilter, FilterSet, OrderingFilter, UUIDFilter
+from django_filters import BooleanFilter, OrderingFilter
 
 from api_core.filters import LoweredFilter, LoweredSearchFilter
+from api_core.filtersets import ApiFilterSet
 from rudi_auth.models import IdentificadorUser
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from django.db.models import Model, QuerySet
 
 ########################################################################################
 
 
-class IdentificadorUserFilterSet(FilterSet):
-    id = UUIDFilter()
-
+class IdentificadorUserFilterSet(ApiFilterSet):
     tipo = LoweredFilter(field_name="tipo__codigo")
 
     is_main = BooleanFilter()
@@ -26,8 +23,7 @@ class IdentificadorUserFilterSet(FilterSet):
 
     order = OrderingFilter(fields=("created_at", "verificado_at"))
 
-    class Meta:
-        fields: Sequence[str] = ()
+    class Meta(ApiFilterSet.Meta):  # ty: ignore[invalid-attribute-override]
         model: type[Model] = IdentificadorUser
 
     def filter_verificado(  # ruff: ignore[no-self-use]

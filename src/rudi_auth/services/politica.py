@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, override
 from asgiref.sync import sync_to_async
 from django.db.transaction import atomic
 
+from api_core.services.operations import ForeignKeyCreateOperation
 from api_exceptions.errors import ApiError
 from rudi_auth.models import PoliticaPrivacidad
-from rudi_core.services import RelationCreateOperation
 
 if TYPE_CHECKING:
     from api_core.schemas.base import DTO
@@ -28,7 +28,9 @@ async def load_politica_vigente() -> PoliticaPrivacidad:
 ########################################################################################
 
 
-class PoliticaCreateOperation[Get: DTO, Post: DTO](RelationCreateOperation[Get, Post]):
+class PoliticaCreateOperation[Get: DTO, Post: DTO](
+    ForeignKeyCreateOperation[Get, Post]
+):
     __slots__ = ()
 
     @override
