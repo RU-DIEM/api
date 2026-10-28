@@ -30,21 +30,15 @@ segundo lugar donde la regla puede divergir.
 | Transicionar actividades por fecha |    Diaria    | [`RF-A-17`][rf-a-17] |  `transicionar_actividades`  |     `idx_actividad_catalogo`     |
 |   Vencer propuestas de mentoría    |    Diaria    | [`RF-P-27`][rf-p-27] | `vencer_propuestas_mentoria` | `idx_asignacionmentor_pendiente` |
 |  Enviar notificaciones pendientes  |   Continua   | [`RF-P-06`][rf-p-06] |     `enviar_pendientes`      |   `idx_notificacion_pendiente`   |
-|  Refrescar vistas materializadas   | Ver nota[^1] | [`RF-A-47`][rf-a-47] |      `refrescar_vistas`      |    Índice único de cada vista    |
-|     Cerrar indicadores anuales     | A pedido[^2] | [`RF-A-45`][rf-a-45] |       `cerrar_periodo`       |   `unq_indicadorperiodo_corte`   |
+|     Cerrar indicadores anuales     | A pedido[^1] | [`RF-A-45`][rf-a-45] |       `cerrar_periodo`       |   `unq_indicadorperiodo_corte`   |
 |   Limpiar la lista de revocación   |    Diaria    |       Template       |  `cleanblocklist` (comando)  |               n/a                |
-|  Retener notificaciones antiguas   |   Mensual    | [`RF-A-50`][rf-a-50] |           n/a[^3]            |  `brin_notificacion_createdat`   |
+|  Retener notificaciones antiguas   |   Mensual    | [`RF-A-50`][rf-a-50] |           n/a[^2]            |  `brin_notificacion_createdat`   |
 
 [^1]:
-    `mv_participacion_actividad` cada hora (alimenta el tablero); el resto,
-    diaria. `mv_participante_unico_anio` se refresca además al fusionar
-    personas.
-
-[^2]:
     El cierre del año es una decisión de la Dirección, no una fecha. El
     comando existe para ejecutarla, no para programarla.
 
-[^3]:
+[^2]:
     La purga es un `DELETE` por lotes acotados sobre el rango que cubre el
     índice BRIN, no una función de dominio.
 

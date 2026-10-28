@@ -267,16 +267,6 @@ matriz de origen, cambian con una revisión del marco y no con una decisión
 operativa, y ninguna lleva atributos propios más allá de su etiqueta. Una tabla
 prometería una extensibilidad que no existe. Ver [`Taxonomías`][taxonomias].
 
-## D-22
-
-> **Las vistas materializadas son la única desviación de hz-api**
-
-`Analítica` publica sus agregados como vistas materializadas refrescadas por
-comando, en lugar de tablas de indicadores escritas por proceso. El volumen es
-pequeño y las consultas son de lectura pura; una vista materializada da el mismo
-resultado sin código que lo mantenga, y `REFRESH ... CONCURRENTLY` no bloquea la
-lectura.
-
 [nomenclatura]: convenciones.md#nomenclatura
 [perfiles]: modulos/perfiles.md
 [perfiles-cuenta]: modulos/perfiles.md#cuenta-y-persona

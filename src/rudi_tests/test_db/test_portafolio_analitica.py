@@ -2,15 +2,10 @@ from decimal import Decimal
 
 import pytest
 
-from django.db import connection
 from django.utils.timezone import now
 
 from rudi_actividades.models import Actividad
-from rudi_analitica.models import (
-    IndicadorPeriodo,
-    MvParticipacionActividad,
-    MvParticipanteUnicoAnio,
-)
+from rudi_analitica.models import IndicadorPeriodo
 from rudi_catalogos.enums import TRL, AmbitosAplicacion, NivelesFormalizacion
 from rudi_portafolio.enums import PropuestaActividadRolTypes
 from rudi_portafolio.models import Propuesta, PropuestaActividad
@@ -121,28 +116,3 @@ def test_anio_sin_terminar_no_se_cierra(db: None) -> None:
         indicador="participantes_unicos",
         valor=Decimal(10),
     )
-
-
-def test_vistas_materializadas(mundo: Mundo) -> None:
-    actividad: Actividad = mundo.actividad(anio=2025)
-
-    mundo.validar(mundo.participacion(actividad, mundo.persona("ana")))
-    mundo.participacion(actividad, mundo.persona("beto"))
-
-    with connection.cursor() as cursor:
-        for vista in (
-            "mv_participante_unico_anio",
-            "mv_participacion_actividad",
-            "mv_saldo_puntos_user",
-            "mv_cobertura_carrera",
-        ):
-            cursor.execute(f"REFRESH MATERIALIZED VIEW {vista}")
-
-    assert MvParticipanteUnicoAnio.objects.get(anio=2025).valor == 1
-
-    resumen: MvParticipacionActividad = MvParticipacionActividad.objects.get(
-        actividad=actividad,
-    )
-
-    assert (resumen.participaciones, resumen.validadas) == (2, 1)
-    assert str(resumen) == f"MvParticipacionActividad(actividad_id={actividad.pk})"

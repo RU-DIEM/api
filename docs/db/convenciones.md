@@ -147,7 +147,6 @@ PostgreSQL.
 |        Índice B-tree        | `idx_<tabla>_<columnas>` |    `idx_participacion_actividad_estado`    |
 | Índice [`GIN`][pg-gin-gist] | `gin_<tabla>_<columna>`  | `gin_mentorprofile_descripcionprofesional` |
 |           Trigger           |  `trg_<tabla>_<regla>`   |    `trg_inscripcion_transicion_valida`     |
-|     Vista materializada     |      `mv_<asunto>`       |        `mv_participante_unico_anio`        |
 
 Las restricciones se nombran **siempre** de forma explícita. Un nombre generado
 por PostgreSQL (`inscripcion_check1`) aparece en el mensaje de error que ve el
