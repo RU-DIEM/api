@@ -3,10 +3,10 @@ from enum import Enum
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BeforeValidator, Field, PositiveInt
+from pydantic import AfterValidator, BeforeValidator, Field, PositiveInt
 
 from .base import DTO
-from .validators import coerce_date, coerce_datetime, coerce_uuid
+from .validators import check_utc_offset, coerce_date, coerce_datetime, coerce_uuid
 
 ########################################################################################
 
@@ -14,7 +14,11 @@ type PrimaryKey = UUID | PositiveInt
 
 type IsoDate = Annotated[date, BeforeValidator(func=coerce_date)]
 
-type IsoDateTime = Annotated[datetime, BeforeValidator(func=coerce_datetime)]
+type IsoDateTime = Annotated[
+    datetime,
+    BeforeValidator(func=coerce_datetime),
+    AfterValidator(func=check_utc_offset),
+]
 
 type LaxEnum[E: Enum] = Annotated[E, Field(strict=False)]
 
