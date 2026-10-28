@@ -1,7 +1,6 @@
 [project]
   extra_css = [
     "stylesheets/footer.css",
-    "stylesheets/sidebar.css",
     "stylesheets/theme.css",
     "stylesheets/topbar.css",
     "stylesheets/width.css",
@@ -9,7 +8,6 @@
 
   extra_javascript = [
     "scripts/elk.mjs",
-    "scripts/sidebar.js",
   ]
 
   site_author      = "Joaquín Zúñiga"
@@ -44,71 +42,25 @@
       ],
     },
     {
-      "Modelo de dominio" = [
-        "modelo-dominio/index.md",
-        "modelo-dominio/alcance.md",
-        "modelo-dominio/decisiones.md",
-        "modelo-dominio/convenciones.md",
+      "Diseño de base de datos" = [
+        "db/alcance.md",
+        "db/decisiones.md",
+        "db/convenciones.md",
+        "db/triggers.md",
+        "db/procesos.md",
         {
           "Módulos" = [
-            "modelo-dominio/modulos/estados.md",
-            "modelo-dominio/modulos/catalogos.md",
-            "modelo-dominio/modulos/taxonomias.md",
-            "modelo-dominio/modulos/identidad.md",
-            "modelo-dominio/modulos/perfiles.md",
-            "modelo-dominio/modulos/actividades.md",
-            "modelo-dominio/modulos/participacion.md",
-            "modelo-dominio/modulos/puntos.md",
-            "modelo-dominio/modulos/constancias.md",
-            "modelo-dominio/modulos/portafolio.md",
-            "modelo-dominio/modulos/analitica.md",
-            "modelo-dominio/modulos/auditoria.md",
-          ],
-        },
-        {
-          "Notas" = [
-            "modelo-dominio/procesos.md",
-            "modelo-dominio/extensiones.md",
-            "modelo-dominio/riesgos.md",
-          ],
-        },
-      ],
-    },
-    {
-      "Diagramas entidad-relación" = [
-        {
-          "Modelo físico" = [
-            "diagramas/entidad-relacion/fisico/catalogos.md",
-            "diagramas/entidad-relacion/fisico/taxonomias.md",
-            "diagramas/entidad-relacion/fisico/identidad.md",
-            "diagramas/entidad-relacion/fisico/perfiles.md",
-            "diagramas/entidad-relacion/fisico/actividades.md",
-            "diagramas/entidad-relacion/fisico/participacion.md",
-            "diagramas/entidad-relacion/fisico/puntos.md",
-            "diagramas/entidad-relacion/fisico/constancias.md",
-            "diagramas/entidad-relacion/fisico/portafolio.md",
-            "diagramas/entidad-relacion/fisico/analitica.md",
-            "diagramas/entidad-relacion/fisico/auditoria.md",
-          ],
-        },
-      ],
-    },
-    {
-      "Diagramas de estados" = [
-        {
-          "Entidades" = [
-            "diagramas/estados/usuario.md",
-            "diagramas/estados/actividad.md",
-            "diagramas/estados/inscripcion.md",
-            "diagramas/estados/participacion.md",
-            "diagramas/estados/constancia.md",
-            "diagramas/estados/propuesta.md",
-          ],
-        },
-        {
-          "Vínculos" = [
-            "diagramas/estados/consentimiento.md",
-            "diagramas/estados/asignacion-mentor.md",
+            "db/modulos/estados.md",
+            "db/modulos/catalogos.md",
+            "db/modulos/taxonomias.md",
+            "db/modulos/perfiles.md",
+            "db/modulos/actividades.md",
+            "db/modulos/participacion.md",
+            "db/modulos/puntos.md",
+            "db/modulos/constancias.md",
+            "db/modulos/portafolio.md",
+            "db/modulos/notificaciones.md",
+            "db/modulos/analitica.md",
           ],
         },
       ],

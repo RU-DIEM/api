@@ -38,16 +38,16 @@ icon: lucide/home
 
 <div align="center" markdown>
 
-|         Sección          |                      Contenido                       |
-| :----------------------: | :--------------------------------------------------: |
-|  [Requerimientos][req]   | 79 requerimientos funcionales y 18 reglas de negocio |
-|      [Actores][act]      |           7 actores humanos y 2 no humanos           |
-|    [Casos de uso][cu]    |                   37 casos de uso                    |
-| [Modelo de dominio][mod] |               82 tablas en 12 módulos                |
+|        Sección        |                      Contenido                       |
+| :-------------------: | :--------------------------------------------------: |
+| [Requerimientos][req] | 79 requerimientos funcionales y 18 reglas de negocio |
+|    [Actores][act]     |           7 actores humanos y 2 no humanos           |
+|  [Casos de uso][cu]   |                   37 casos de uso                    |
+|  [Base de datos][db]  |         Convenciones, triggers y 10 módulos          |
 
 </div>
 
 [act]: actores/index.md
 [cu]: casos-uso/administracion.md
-[mod]: modelo-dominio/index.md
+[db]: db/alcance.md
 [req]: requerimientos/reglas-negocio.md

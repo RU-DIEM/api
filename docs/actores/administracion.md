@@ -39,8 +39,7 @@ estarían separadas:
 |   Auditoría   | Revisa la bitácora de sus propias acciones  |     Nadie verifica al que verifica a los demás     |
 
 El modelo declara la estructura de roles desde el principio y la puebla con un
-solo valor. Separar funciones más adelante es dar de alta filas en un catálogo,
-no migrar el esquema. El enganche está en [`E-06`][e-06].
+solo valor. Separar funciones más adelante es dar de alta grupos y permisos de
+Django, no migrar el esquema.
 
-[e-06]: ../modelo-dominio/extensiones.md#e-06
 [rn-16]: ../requerimientos/reglas-negocio.md#rn-16

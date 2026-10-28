@@ -18,8 +18,8 @@ completo de personas cambiando un número en la barra de direcciones.
 > **Todo instante en `timestamptz` almacenado en UTC**
 
 La fecha de negocio se materializa aparte como `date` cuando hace falta agrupar
-por día. Nicaragua no aplica horario de verano, lo que hace la conversión a
-`America/Managua` estable.
+por día, resuelta en `America/Managua` con `rudi_hoy()`. Nicaragua no aplica
+horario de verano, lo que hace la conversión estable.
 
 El año de participación, en cambio, **no** se deriva del instante: es una columna
 propia, porque una actividad que empieza en diciembre y termina en enero pertenece
@@ -27,23 +27,32 @@ al año que la DIEM decida reportar, no al que diga el reloj. Ver [`D-14`](#d-14
 
 ## D-03
 
-> **Una sola tabla `usuario` para toda persona**
+> **Una persona, una cuenta y una ficha de persona**
 
-Estudiantes, externos, docentes, mentores y administradores comparten tabla.
-Lo que los diferencia son los perfiles de [`Perfiles`][perfiles] y el rol de
-sistema.
+Estudiantes, externos, docentes, mentores y administradores son, cada uno, una
+sola fila de [`ApiUser`][perfiles-cuenta] (credenciales, correo, grupos) y una
+sola fila de [`RudiUser`][perfiles-persona] (la persona: estado, origen, datos
+demográficos), unidas 1:1. Lo que los diferencia son los perfiles de
+[`Perfiles`][perfiles] y los grupos de Django.
 
 Es la decisión que hace posible el requerimiento central: si un docente que
 además mentorea tuviera dos filas, el conteo de participantes únicos volvería a
 estar mal por construcción, que es exactamente el problema que el sistema viene a
 resolver.
 
+La separación entre cuenta y persona no es duplicación. La cuenta es del
+subsistema de autenticación del template (verificación de correo, contraseñas,
+JWT, permisos) y la persona es del dominio: su ciclo de vida
+(`estado_rudiuser`), su origen y su anonimización no le importan al login. Todo
+el dominio referencia a `RudiUser`, nunca a `ApiUser`, salvo para nombrar al
+actor de una acción administrativa (`verificado_por`, `confirmado_por`).
+
 ## D-04
 
-> **Los identificadores viven en tabla propia, no en columnas de `usuario`**
+> **Los identificadores viven en tabla propia, no en columnas de la persona**
 
-`usuario` no tiene columnas `cif` ni `cedula`. Tiene filas en
-`identificador_persona`, cada una con su tipo y su valor.
+`RudiUser` no tiene columnas `cif` ni `cedula`. Tiene filas en
+`IdentificadorUser`, cada una con su tipo y su valor.
 
 Con columnas, una persona con CIF y cédula obliga a comparar cuatro combinaciones
 para detectar un duplicado, y agregar el pasaporte para participantes extranjeros
@@ -96,7 +105,9 @@ Lanzan excepción en el motor, no validando reglas en la capa de aplicación.
 que vive en el servicio se evade desde cualquier cliente de base de datos; una
 que vive en el trigger, no. La DIEM administra su propio sistema y su
 administrador tendrá acceso a la base: la protección tiene que estar por debajo
-de él.
+de él. Las clases base del template (`trg_protect_delete`, `trg_append_only`,
+`trg_softdelete_isactive`) y los `ReadOnly` de cada tabla son la forma concreta
+de esta decisión.
 
 ## D-09
 
@@ -115,7 +126,8 @@ inscripción viva bajo concurrencia.
 > **Máquinas de estado como datos**
 
 Las transiciones legales de `inscripcion`, `participacion`, `actividad` y
-`propuesta` se declaran en tablas `transicion_<entidad>`, no en código.
+`propuesta` se declaran en tablas `transicion_estado_<entidad>`, no en código, y
+las impone `trg_<tabla>_transicion_valida`.
 
 Agregar un desenlace de participación —la matriz de estudiantes ya tiene seis y
 la DIEM añadirá más— debe ser una fila, no un despliegue.
@@ -129,13 +141,13 @@ inscripciones y llamarlas participantes es el error que motiva el proyecto.
 
 Una participación puede existir sin inscripción, porque en las charlas abiertas
 la asistencia se registra el mismo día. Por eso `participacion.inscripcion_id` es
-nulable y la llave foránea real es a `usuario` y `actividad`.
+nulable y la llave foránea real es a la persona y a la actividad.
 
 ## D-12
 
 > **Los puntos son un libro mayor, no un contador**
 
-`usuario` no tiene columna `puntos`. Tiene filas en `movimiento_punto`, y el
+La persona no tiene columna `puntos`. Tiene filas en `movimiento_punto`, y el
 saldo es su suma.
 
 Un contador denormalizado obliga a que toda corrección lo actualice y a que toda
@@ -165,19 +177,21 @@ escrito igual cada vez.
 Una edición del Rally que se ejecuta en diciembre y cierra en enero se reporta
 completa en un solo año, y quién decide cuál es la DIEM. Derivarlo del instante
 partiría esa edición en dos ejercicios y ninguna de las dos mitades cuadraría con
-el informe institucional.
+el informe institucional. El valor se copia de `actividad.anio` al insertar y
+queda congelado (familia de [derivación de snapshot][triggers-snapshot]).
 
 ## D-15
 
-> **El historial y el reporte no son tablas**
+> **El historial es pghistory; el reporte no es tabla**
 
-Ambos aparecen como conceptos en el análisis preliminar. Ninguno se persiste.
+El historial de cada fila mutable es su tabla de eventos gemela, que pghistory
+escribe por trigger con el contexto de la petición (`@track_table()`). No hay
+`bitacora` genérica ni tablas `*_evento` escritas a mano: una segunda copia del
+historial podría desincronizarse de la primera, y la pregunta _cuál de las dos
+es correcta_ no tendría respuesta.
 
-El historial es una consulta sobre `participacion` y `movimiento_punto`.
-Almacenarlo crearía una segunda verdad que puede desincronizarse de la primera, y
-la pregunta _cuál de las dos es correcta_ no tendría respuesta. Lo que sí se
-persiste es el **cierre anual**, que es otra cosa: una foto fechada e inmutable,
-descrita en [`RN-18`][rn-18].
+El reporte es una consulta. Lo que sí se persiste es el **cierre anual**, que es
+otra cosa: una foto fechada e inmutable, descrita en [`RN-18`][rn-18].
 
 ## D-16
 
@@ -189,13 +203,13 @@ como estaban al emitirse, no llaves foráneas que se lean al imprimir.
 Un documento institucional entregado a un tercero no puede cambiar de contenido
 porque alguien corrigió una fecha tres meses después. Las llaves foráneas también
 están, para poder navegar, pero el texto que se imprime sale de las columnas
-congeladas.
+congeladas, protegidas por `trg_readonly_snapshot`.
 
 ## D-17
 
 > **Doble titulación como filas, no como columnas**
 
-`estudiante_carrera` admite una fila por carrera con su marca de principal, en
+`EstudianteCarrera` admite una fila por carrera con su marca de principal, en
 lugar de `carrera_1` y `carrera_2` sobre el perfil.
 
 Con columnas, el reporte por carrera necesita unir la tabla consigo misma y el
@@ -206,7 +220,8 @@ y el estudiante con tres carreras no rompe nada.
 
 > **Los catálogos no se borran, se desactivan**
 
-Toda tabla de catálogo lleva `activo` y bloquea `DELETE` con trigger.
+Toda tabla de catálogo hereda de `ApiSoftDeleteModel`: lleva `is_active` y
+`trg_softdelete_isactive` reescribe el `DELETE` en `is_active = false`.
 
 Una carrera cerrada hace cinco años sigue siendo la carrera de las personas que
 participaron entonces. Borrarla dejaría huérfanos los reportes históricos que
@@ -216,23 +231,58 @@ justifican la existencia del sistema.
 
 > **El dato demográfico es autodeclarado y opcional en el reporte**
 
-Sexo y etnia son listas administrables y llevan valor de _prefiero no declarar_.
-Ningún reporte los exige como dimensión obligatoria y ninguna validación los
-infiere del nombre o de la procedencia.
+Género y etnia son listas cerradas con valor `sin_declara` (_prefiero no
+decirlo_). Ningún reporte los exige como dimensión obligatoria y ninguna
+validación los infiere del nombre o de la procedencia.
 
 La matriz de estudiantes lo pide explícitamente para la etnia. El modelo extiende
-el mismo criterio al sexo, porque el argumento es idéntico.
+el mismo criterio al género, porque el argumento es idéntico.
 
 ## D-20
 
-> **Nombres de tabla en singular, `snake_case`, en español**
+> **Nombres de dominio en español**
 
 El dominio se enuncia en español en todos los documentos de origen y traducirlo
 introduce una capa de equivalencias que hay que mantener en la cabeza al leer una
-consulta. Las tablas puente llevan los nombres de ambos extremos en orden de
-dependencia (`estudiante_carrera`, `constancia_participacion`).
+consulta. Los modelos se nombran en español (`Actividad`, `EstudianteCarrera`) y
+Django deriva la tabla física como `<app>_<modelo>` en minúsculas
+(`rudiparticipacion_inscripcion`). Esta documentación nombra cada tabla por su
+modelo en `snake_case` (`estudiante_carrera`); las restricciones, por el nombre
+que genera `%(class)s` (ver [Nomenclatura][nomenclatura]).
 
+Las columnas que vienen del template (`created_at`, `updated_at`, `is_active`)
+y los atributos semánticos de los catálogos de estado (`allow_*`, `require_*`)
+conservan su nombre en inglés: son vocabulario del framework, no del dominio.
+
+## D-21
+
+> **Listas cerradas externas como enumeraciones, no como tablas**
+
+Las taxonomías del portafolio (TRL, MRL, ODS, sectores CUAEN, …), el género, la
+etnia, la talla y los niveles académicos son `varchar` con `CHECK` contra un
+`TextChoices` de Python, no tablas de catálogo.
+
+Ninguna de esas listas la administra la DIEM: vienen de un marco externo o de la
+matriz de origen, cambian con una revisión del marco y no con una decisión
+operativa, y ninguna lleva atributos propios más allá de su etiqueta. Una tabla
+prometería una extensibilidad que no existe. Ver [`Taxonomías`][taxonomias].
+
+## D-22
+
+> **Las vistas materializadas son la única desviación de hz-api**
+
+`Analítica` publica sus agregados como vistas materializadas refrescadas por
+comando, en lugar de tablas de indicadores escritas por proceso. El volumen es
+pequeño y las consultas son de lectura pura; una vista materializada da el mismo
+resultado sin código que lo mantenga, y `REFRESH ... CONCURRENTLY` no bloquea la
+lectura.
+
+[nomenclatura]: convenciones.md#nomenclatura
 [perfiles]: modulos/perfiles.md
+[perfiles-cuenta]: modulos/perfiles.md#cuenta-y-persona
+[perfiles-persona]: modulos/perfiles.md#rudi_user
+[taxonomias]: modulos/taxonomias.md
+[triggers-snapshot]: triggers.md#derivacion-de-snapshot
 [rn-06]: ../requerimientos/reglas-negocio.md#rn-06
 [rn-16]: ../requerimientos/reglas-negocio.md#rn-16
 [rn-18]: ../requerimientos/reglas-negocio.md#rn-18

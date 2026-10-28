@@ -195,8 +195,7 @@ icon: lucide/folder-lock
         **La fusión se hizo por error**
 
         No hay deshacer automático. El registro de la fusión conserva el detalle
-        de lo trasladado, y revertirla es una operación manual documentada. Ver
-        [`R-04`][r-04].
+        de lo trasladado, y revertirla es una operación manual documentada.
 
 - **Postcondición:** Existe un solo registro operativo para esa persona y la fusión es consultable.
 
@@ -764,7 +763,6 @@ icon: lucide/folder-lock
 
 [act-admin]: ../actores/administracion.md#administrador-diem
 [act-proceso]: ../actores/index.md#proceso-programado
-[r-04]: ../modelo-dominio/riesgos.md#r-04
 [rf-a-01]: ../requerimientos/funcionales/administracion.md#rf-a-01
 [rf-a-02]: ../requerimientos/funcionales/administracion.md#rf-a-02
 [rf-a-03]: ../requerimientos/funcionales/administracion.md#rf-a-03
