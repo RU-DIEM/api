@@ -26,7 +26,7 @@ from rudi_catalogos.enums import (
     VerticalesInnovacion,
 )
 from rudi_catalogos.schemas.motivo import MotivoInlineGet
-from rudi_core.types import EnlaceUrl, MotivoDescripcion
+from rudi_core.types import EnlaceUrl, MotivoDescripcion, SinNul
 from rudi_estados.schemas import EstadoPropuestaGet
 from rudi_portafolio.enums import IntegranteRolTypes, PropuestaActividadRolTypes
 from rudi_portafolio.filtersets import (
@@ -37,7 +37,7 @@ from rudi_portafolio.filtersets import (
 
 ########################################################################################
 
-type Texto = Annotated[str, StringConstraints(max_length=8_000)]
+type Texto = Annotated[str, SinNul, StringConstraints(max_length=8_000)]
 
 ########################################################################################
 
@@ -78,7 +78,7 @@ class PropuestaGet(PropuestaInlineGet):
 
 
 class PropuestaWrite(DTO):
-    nombre: Annotated[str, StringConstraints(max_length=200, min_length=2)]
+    nombre: Annotated[str, SinNul, StringConstraints(max_length=200, min_length=2)]
 
     problema: Texto = ""
     solucion: Texto = ""
@@ -110,7 +110,7 @@ class PropuestaAccionPost(DTO):
 
 class PropuestaCerrarPost(PropuestaAccionPost):
     # the closing outcome: a terminal `estado_propuesta` code
-    desenlace: Annotated[str, StringConstraints(max_length=50, min_length=1)]
+    desenlace: Annotated[str, SinNul, StringConstraints(max_length=50, min_length=1)]
     motivo_id: UUID
     motivo_descripcion: MotivoDescripcion = ""
 
@@ -145,7 +145,7 @@ class PropuestaActividadGet(BaseGet):
 
 
 class PropuestaActividadWrite(DTO):
-    resultado: Annotated[str, StringConstraints(max_length=200)] = ""
+    resultado: Annotated[str, SinNul, StringConstraints(max_length=200)] = ""
     enlace_evidencia: EnlaceUrl = ""
 
 

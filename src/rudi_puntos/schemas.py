@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import Field, StringConstraints, model_validator
+from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from api_core.schemas.base import DTO
 from api_core.schemas.factories import (
@@ -19,22 +19,27 @@ from rudi_catalogos.schemas.base import CatalogoCodigo
 from rudi_catalogos.schemas.motivo import MotivoInlineGet
 from rudi_catalogos.schemas.reconocimiento import TipoReconocimientoInlineGet
 from rudi_catalogos.schemas.rol import RolParticipacionInlineGet
-from rudi_core.types import Anio, Puntos
+from rudi_core.types import Anio, Puntos, SinNul
 from rudi_estados.schemas import EstadoParticipacionGet
 from rudi_puntos.enums import MovimientoOrigenTypes
 from rudi_puntos.filtersets import MovimientoPuntoFilterSet, ReglaPuntuacionFilterSet
 
 ########################################################################################
 
-type Descripcion = Annotated[str, StringConstraints(max_length=300)]
+type Descripcion = Annotated[str, SinNul, StringConstraints(max_length=300)]
 
 ########################################################################################
 
 
-class VigenciaGet(DTO):
+class VigenciaGet(BaseModel):
     """
     A `daterange`, half open: `upper` is the first day the rule no longer applies.
+
+    Not a `DTO`: the relation resolver reads every nested `DTO` as a foreign key
+    to `select_related`, and a range is a column.
     """
+
+    model_config = DTO.model_config
 
     lower: date | None
     upper: date | None
@@ -73,7 +78,7 @@ class ReglaPuntuacionGet(BaseGet):
 
 
 class ReglaPuntuacionWrite(DTO):
-    etiqueta: Annotated[str, StringConstraints(max_length=150, min_length=1)]
+    etiqueta: Annotated[str, SinNul, StringConstraints(max_length=150, min_length=1)]
 
     tipo_actividad: RelatedId | None = None
     programa: RelatedId | None = None

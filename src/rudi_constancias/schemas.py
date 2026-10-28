@@ -20,17 +20,20 @@ from rudi_constancias.filtersets import (
     ConstanciaParticipacionFilterSet,
     PlantillaConstanciaFilterSet,
 )
-from rudi_core.types import EnlaceUrl, MotivoDescripcion
+from rudi_core.types import EnlaceUrl, MotivoDescripcion, SinNul
 from rudi_estados.schemas import EstadoConstanciaGet
 
 ########################################################################################
 
-type Campo = Annotated[str, StringConstraints(max_length=50, pattern=r"^[a-z_]+$")]
+type Campo = Annotated[
+    str, SinNul, StringConstraints(max_length=50, pattern=r"^[a-z_]+$")
+]
 
-type Firma = Annotated[str, StringConstraints(max_length=150)]
+type Firma = Annotated[str, SinNul, StringConstraints(max_length=150)]
 
 type Verificacion = Annotated[
     str,
+    SinNul,
     StringConstraints(max_length=12, min_length=8, pattern=r"^[A-Z0-9]+$"),
 ]
 
@@ -56,7 +59,7 @@ class PlantillaConstanciaGet(PlantillaConstanciaInlineGet):
 
 
 class PlantillaConstanciaWrite(DTO):
-    etiqueta: Annotated[str, StringConstraints(max_length=120, min_length=1)]
+    etiqueta: Annotated[str, SinNul, StringConstraints(max_length=120, min_length=1)]
 
     firma_nombre: Firma = ""
     firma_cargo: Firma = ""
@@ -69,7 +72,7 @@ class PlantillaConstanciaPost(PlantillaConstanciaWrite):
     """
 
     codigo: CatalogoCodigo
-    cuerpo: Annotated[str, StringConstraints(max_length=20_000, min_length=1)]
+    cuerpo: Annotated[str, SinNul, StringConstraints(max_length=20_000, min_length=1)]
     campos_requeridos: Annotated[list[Campo], Field(max_length=30)] = Field(
         default_factory=list,
     )
@@ -120,7 +123,7 @@ class ConstanciaAnularPost(DTO):
 
 
 class ConstanciaVerificarPost(DTO):
-    folio: Annotated[str, StringConstraints(max_length=30, min_length=1)]
+    folio: Annotated[str, SinNul, StringConstraints(max_length=30, min_length=1)]
     codigo_verificacion: Verificacion
 
 

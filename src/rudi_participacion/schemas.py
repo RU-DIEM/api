@@ -17,7 +17,7 @@ from rudi_auth.schemas.user import RudiUserInlineGet
 from rudi_catalogos.schemas.motivo import MotivoInlineGet
 from rudi_catalogos.schemas.reconocimiento import TipoReconocimientoInlineGet
 from rudi_catalogos.schemas.rol import RolParticipacionInlineGet
-from rudi_core.types import EnlaceUrl, MotivoDescripcion
+from rudi_core.types import EnlaceUrl, MotivoDescripcion, SinNul
 from rudi_estados.enums import InputSourceTypes
 from rudi_estados.schemas import (
     EstadoAsignacionMentorGet,
@@ -37,7 +37,7 @@ from rudi_profiles.schemas.mentor import MentorProfileInlineGet
 
 ########################################################################################
 
-type Observaciones = Annotated[str, StringConstraints(max_length=4_000)]
+type Observaciones = Annotated[str, SinNul, StringConstraints(max_length=4_000)]
 
 ########################################################################################
 # inscripción
@@ -139,7 +139,7 @@ class ParticipacionValidarPost(DTO):
     participacion_id: UUID
     # the outcome being validated: an `estado_participacion` code (`finalizada`,
     # `no_completo`, `retirada`, ...); the transition catalog decides if it is legal
-    desenlace: Annotated[str, StringConstraints(max_length=50, min_length=1)]
+    desenlace: Annotated[str, SinNul, StringConstraints(max_length=50, min_length=1)]
 
 
 class ParticipacionAnularPost(DTO):
@@ -162,7 +162,7 @@ class ReconocimientoGet(BaseGet):
 
 
 class ReconocimientoWrite(DTO):
-    descripcion: Annotated[str, StringConstraints(max_length=300, min_length=1)]
+    descripcion: Annotated[str, SinNul, StringConstraints(max_length=300, min_length=1)]
     posicion: Annotated[int, Field(ge=1, le=1_000)] | None = None
     otorgado_en: IsoDate | None = None
     enlace_evidencia: EnlaceUrl = ""
@@ -186,13 +186,13 @@ class EquipoGet(BaseGet):
 
 
 class EquipoWrite(DTO):
-    nombre: Annotated[str, StringConstraints(max_length=120, min_length=2)]
+    nombre: Annotated[str, SinNul, StringConstraints(max_length=120, min_length=2)]
     congelado_at: IsoDateTime | None = None
 
 
 class EquipoPost(DTO):
     actividad: RelatedId
-    nombre: Annotated[str, StringConstraints(max_length=120, min_length=2)]
+    nombre: Annotated[str, SinNul, StringConstraints(max_length=120, min_length=2)]
 
 
 class EquipoMiembroGet(BaseGet):
@@ -212,7 +212,7 @@ class EquipoMiembroPost(DTO):
 
 
 class UnirmeEquipoPost(DTO):
-    codigo_union: Annotated[str, StringConstraints(max_length=10, min_length=6)]
+    codigo_union: Annotated[str, SinNul, StringConstraints(max_length=10, min_length=6)]
 
 
 ########################################################################################

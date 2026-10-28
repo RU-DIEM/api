@@ -11,7 +11,7 @@ from api_core.schemas.filters import PaginatedFilterQuery, UnpaginatedFilterQuer
 from api_core.schemas.get import BaseGet, LaxEnum
 from rudi_analitica.enums import IndicadorUnidadTypes
 from rudi_analitica.filtersets import IndicadorPeriodoFilterSet
-from rudi_core.types import Anio
+from rudi_core.types import Anio, SinNul
 
 ########################################################################################
 
@@ -44,13 +44,13 @@ class IndicadorPeriodoPost(DTO):
     ]
     anio: Anio
 
-    dimension: Annotated[str, StringConstraints(max_length=40)] = ""
-    dimension_valor: Annotated[str, StringConstraints(max_length=150)] = ""
+    dimension: Annotated[str, SinNul, StringConstraints(max_length=40)] = ""
+    dimension_valor: Annotated[str, SinNul, StringConstraints(max_length=150)] = ""
 
     valor: Annotated[Decimal, Field(ge=0, max_digits=12, decimal_places=2)]
     unidad: LaxEnum[IndicadorUnidadTypes] = IndicadorUnidadTypes.PERSONAS
 
-    metodo: Annotated[str, StringConstraints(max_length=4_000)] = ""
+    metodo: Annotated[str, SinNul, StringConstraints(max_length=4_000)] = ""
     filas_origen: Annotated[int, Field(ge=0)] = 0
 
 

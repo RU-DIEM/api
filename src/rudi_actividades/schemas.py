@@ -22,12 +22,12 @@ from rudi_auth.schemas.user import RudiUserInlineGet
 from rudi_catalogos.schemas.actividad import TipoActividadInlineGet
 from rudi_catalogos.schemas.base import CatalogoCodigo
 from rudi_catalogos.schemas.motivo import MotivoInlineGet
-from rudi_core.types import Anio, EnlaceUrl, MotivoDescripcion, Puntos
+from rudi_core.types import Anio, EnlaceUrl, MotivoDescripcion, Puntos, SinNul
 from rudi_estados.schemas import EstadoActividadGet
 
 ########################################################################################
 
-type Nombre = Annotated[str, StringConstraints(max_length=200, min_length=2)]
+type Nombre = Annotated[str, SinNul, StringConstraints(max_length=200, min_length=2)]
 
 type TamanoEquipo = Annotated[int, Field(ge=1, le=100)]
 
@@ -51,7 +51,7 @@ class ProgramaGet(ProgramaInlineGet):
 
 class ProgramaWrite(DTO):
     nombre: Nombre
-    nombre_corto: Annotated[str, StringConstraints(max_length=60)] = ""
+    nombre_corto: Annotated[str, SinNul, StringConstraints(max_length=60)] = ""
     descripcion: str = ""
 
     tipo_actividad: RelatedId | None = None
@@ -114,11 +114,11 @@ class ActividadWrite(DTO):
     tipo_actividad: RelatedId
 
     nombre: Nombre
-    etiqueta_edicion: Annotated[str, StringConstraints(max_length=60)] = ""
+    etiqueta_edicion: Annotated[str, SinNul, StringConstraints(max_length=60)] = ""
     descripcion: str = ""
 
     modalidad: LaxEnum[ModalidadTypes] = ModalidadTypes.PRESENCIAL
-    lugar: Annotated[str, StringConstraints(max_length=200)] = ""
+    lugar: Annotated[str, SinNul, StringConstraints(max_length=200)] = ""
 
     anio: Anio
 
