@@ -1,27 +1,30 @@
 from asgiref.sync import sync_to_async
 from django.db.transaction import atomic
 from django.utils.timezone import now
+from django.views.decorators.debug import sensitive_variables
 
-from api_exceptions.enums import BadRequestErrorTypes, RequestScopes
-from api_exceptions.errors import BadRequestError, NotFoundError
-from rudi_auth.enums import VerificacionPropositoTypes
-from rudi_auth.models import CodigoVerificacion, RudiUser
-from rudi_auth.services.verificacion import consume_codigo, issue_codigo
+from api_auth.enums import VerificationPurposes
+from api_auth.models import ApiUser
+from api_auth.services import account as api_account
+from api_exceptions.errors import NotFoundError
+from rudi_auth.models import RudiUser
 from rudi_estados.models import EstadoRudiUser
+
+from .verificacion import issue_codigo
 
 ########################################################################################
 
 
-async def resolve_estado_activo() -> EstadoRudiUser:
+def resolve_estado_activo() -> EstadoRudiUser:
     estado: EstadoRudiUser | None = (
-        await EstadoRudiUser.objects
+        EstadoRudiUser.objects
         .filter(
             allow_ingreso=True,
             is_active=True,
             terminal=False,
         )
         .order_by("pk")
-        .afirst()
+        .first()
     )
 
     if estado is None:
@@ -35,63 +38,100 @@ async def resolve_estado_activo() -> EstadoRudiUser:
 ########################################################################################
 
 
-def activate(user: RudiUser, estado: EstadoRudiUser) -> None:
-    if user.email_verified_at is None:
-        user.email_verified_at = now()
-
-    user.estado = estado  # ty: ignore[invalid-assignment]
-
-    user.save(update_fields=("email_verified_at", "estado", "updated_at"))
+def mark_email_verified(user: ApiUser) -> None:
+    ApiUser.objects.filter(
+        email_verified_at__isnull=True,
+        pk=user.pk,
+    ).update(email_verified_at=now())
 
 
 ########################################################################################
 
 
-async def confirm_email(token: str) -> RudiUser:
-    codigo: CodigoVerificacion = await consume_codigo(
-        proposito=VerificacionPropositoTypes.VERIFY,
-        token=token,
+def activate(user: ApiUser) -> None:
+    """
+    Move a freshly registered persona out of its initial state.
+
+    Proving ownership of the address is what lets a persona in, so
+    this runs after every verified code. Personas that already left
+    the initial state (suspended, anonymized, ...) are left alone,
+    so a later re-verification can never undo an administrative
+    decision. Accounts without a persona are not rudi's business.
+
+    Args:
+        user: The account whose address was just verified.
+
+    """
+
+    persona: RudiUser | None = (
+        RudiUser.objects
+        .select_for_update(of=("self",))
+        .select_related("estado")
+        .filter(user=user)
+        .first()
     )
 
-    if codigo.user is None:
-        raise BadRequestError(
-            field_errors={"token": "El enlace no está asociado a una cuenta."},
-            type=BadRequestErrorTypes.FAILED_VALIDATION,
-        ).scoped(RequestScopes.BODY)
+    if persona is None or not persona.estado.initial:  # ty: ignore[unresolved-attribute]
+        return
 
-    estado: EstadoRudiUser = await resolve_estado_activo()
+    persona.estado = resolve_estado_activo()  # ty: ignore[invalid-assignment]
 
-    user: RudiUser = codigo.user  # ty: ignore[invalid-assignment]
+    persona.save(update_fields=("estado", "updated_at"))
 
-    @atomic
-    def persist() -> None:
-        activate(estado=estado, user=user)
 
-    await sync_to_async(func=persist)()
+########################################################################################
 
-    return user
+
+@sensitive_variables()
+def settle_email(token: str) -> ApiUser:
+    with atomic():
+        user: ApiUser = api_account.settle_email(token)
+
+        activate(user)
+
+        return user
+
+
+########################################################################################
+
+
+@sensitive_variables()
+async def confirm_email(token: str) -> ApiUser:
+    return await sync_to_async(func=settle_email)(token)
 
 
 ########################################################################################
 
 
 async def resend_verification(email: str) -> None:
-    user: RudiUser | None = (
+    """
+    Send a new verification code to an address, if it still needs one.
+
+    Pending personas get rudi's message; any other account falls
+    through to the template's own flow. Nothing is reported back,
+    so the endpoint cannot be used to probe for registered addresses.
+
+    Args:
+        email: The address that requested a new code.
+
+    """
+
+    persona: RudiUser | None = (
         await RudiUser.objects
         .select_related("user")
         .filter(
             anonimizado_at__isnull=True,
-            email_verified_at__isnull=True,
             user__email__iexact=email,
+            user__email_verified_at__isnull=True,
         )
         .afirst()
     )
 
-    if user is None:
+    if persona is None:
+        await api_account.resend_verification(email)
         return
 
     await issue_codigo(
-        email=user.user.email,  # ty: ignore[unresolved-attribute]
-        proposito=VerificacionPropositoTypes.VERIFY,
-        user=user,
+        proposito=VerificationPurposes.EMAIL,
+        user=persona.user,
     )

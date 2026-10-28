@@ -3,10 +3,9 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, StringConstraints
 
 from api_auth.models import ApiUser
-from api_auth.schemas.types import Password, Username
+from api_auth.schemas.types import Email, Password, Username
 from api_core.schemas.base import DTO
 from api_core.schemas.get import IsoDate, LaxEnum, RelatedId
-from rudi_auth.schemas.validators import empty_or_email
 from rudi_catalogos.enums import Etnias, Generos, TallasCamisa
 
 from .user import RudiUserGet, Telefono
@@ -53,12 +52,7 @@ class RudiIdentificadorWrite(DTO):
 
 
 class RudiRegisterPost(RudiPersonaWrite):
-    email: Annotated[
-        str,
-        AfterValidator(func=empty_or_email),
-        AfterValidator(func=ApiUser.objects.normalize_email),
-        StringConstraints(max_length=254, min_length=1),
-    ]
+    email: Email
 
     username: Annotated[Username, AfterValidator(func=ApiUser.normalize_username)]
 
@@ -74,12 +68,7 @@ class RudiRegisterPost(RudiPersonaWrite):
 
 
 class RudiInvitePost(RudiPersonaWrite):
-    email: Annotated[
-        str,
-        AfterValidator(func=empty_or_email),
-        AfterValidator(func=ApiUser.objects.normalize_email),
-        StringConstraints(max_length=254, min_length=1),
-    ]
+    email: Email
 
     username: Annotated[Username, AfterValidator(func=ApiUser.normalize_username)]
 

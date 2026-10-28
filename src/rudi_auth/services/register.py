@@ -6,12 +6,13 @@ from django.db.transaction import atomic
 from django.utils.timezone import now
 from django.views.decorators.debug import sensitive_variables
 
+from api_auth.enums import VerificationPurposes
 from api_auth.services.user import check_password_match, check_password_strength
 from api_core.services.operations import CreateOperation
 from api_exceptions.enums import ConflictErrorTypes, RequestScopes
 from api_exceptions.errors import ConflictError
 from api_utils.db import set_immediate_constraints
-from rudi_auth.enums import ConsentimientoCanalTypes, VerificacionPropositoTypes
+from rudi_auth.enums import ConsentimientoCanalTypes
 from rudi_auth.models import (
     ConsentimientoDatos,
     IdentificadorUser,
@@ -75,7 +76,7 @@ class RudiUserCreateOperation[Get: DTO, Post: DTO](CreateOperation[Get, Post]):
 
     canal: ConsentimientoCanalTypes = ConsentimientoCanalTypes.PORTAL
     origen: InputSourceTypes = InputSourceTypes.SELF
-    proposito: VerificacionPropositoTypes = VerificacionPropositoTypes.VERIFY
+    proposito: VerificationPurposes = VerificationPurposes.EMAIL
 
     @override
     @sensitive_variables()
@@ -101,9 +102,8 @@ class RudiUserCreateOperation[Get: DTO, Post: DTO](CreateOperation[Get, Post]):
         )
 
         await issue_codigo(
-            email=user.user.email,  # ty: ignore[unresolved-attribute]
             proposito=self.proposito,
-            user=user,
+            user=user.user,
         )
 
         return user
@@ -168,4 +168,4 @@ class RudiInviteCreateOperation[Get: DTO, Post: DTO](
 
     canal: ConsentimientoCanalTypes = ConsentimientoCanalTypes.PAPER
     origen: InputSourceTypes = InputSourceTypes.MODERN
-    proposito: VerificacionPropositoTypes = VerificacionPropositoTypes.INVITE
+    proposito: VerificationPurposes = VerificationPurposes.INVITATION

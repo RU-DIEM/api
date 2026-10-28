@@ -23,6 +23,8 @@ class TokenTypes(TextChoices):
 
 class VerificationPurposes(TextChoices):
     EMAIL = "email_verification"
+    INVITATION = "invitation"
+    PASSWORD_RESET = "password_reset"  # ruff: ignore[hardcoded-password-string]
 
 
 ########################################################################################

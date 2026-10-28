@@ -119,7 +119,6 @@ class RudiUser(RudiProtectedModel):
     etnia = CharField(db_default="", default="", max_length=20)
     talla = CharField(db_default="", default="", max_length=10)
 
-    email_verified_at = DateTimeField(null=True)
     anonimizado_at = DateTimeField(null=True)
 
     class Meta(RudiProtectedModel.Meta):  # ty: ignore[invalid-attribute-override]

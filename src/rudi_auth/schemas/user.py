@@ -53,7 +53,6 @@ class RudiUserGet(RudiUserInlineGet):
     etnia: Etnias | Literal[""]
     talla: TallasCamisa | Literal[""]
 
-    email_verified_at: datetime | None
     anonimizado_at: datetime | None
 
 

@@ -5,6 +5,7 @@ from .consentimiento import (
     ConsentimientoDatosDetailController,
     ConsentimientoRetiroController,
 )
+from .email import EmailConfirmController, EmailResendController
 from .identificador import (
     IdentificadorUserDetailController,
     IdentificadorUserListController,
@@ -26,8 +27,6 @@ from .politica import (
     PoliticaVigenteController,
 )
 from .register import (
-    EmailConfirmController,
-    EmailResendController,
     RudiInviteController,
     RudiRegisterController,
 )
