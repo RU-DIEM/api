@@ -277,7 +277,6 @@ los `trg_readonly_*` no se repiten aquí: están en
 
 |                      Trigger                       |       Familia        |  Estado   |
 | :------------------------------------------------: | :------------------: | :-------: |
-|           `trg_actividad_cupo_no_reduce`           |      Coherencia      | Pendiente |
 |        `trg_actividad_publicacion_completa`        |      Coherencia      | Pendiente |
 |       `trg_actividad_cancelar_inscripciones`       | Efecto en otra tabla | Pendiente |
 |          `trg_actividad_promover_espera`           | Efecto en otra tabla | Pendiente |
@@ -306,7 +305,7 @@ los `trg_readonly_*` no se repiten aquí: están en
 | `trg_constanciaparticipacion_participacion_valida` |      Coherencia      | Pendiente |
 |           `trg_propuesta_codigo_asignar`           |      Derivación      | Pendiente |
 |         `trg_propuesta_clasificada_marca`          |      Derivación      | Pendiente |
-|          `trg_propuestaactividad_origen`           | Efecto en otra tabla | Pendiente |
+|          `trg_propuesta_actividad_origen`          | Efecto en otra tabla | Pendiente |
 |        `trg_indicadorperiodo_anio_cerrado`         |      Coherencia      | Pendiente |
 
 ### Triggers del diseño original que no existen

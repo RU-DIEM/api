@@ -174,10 +174,12 @@ No lleva `descripcion`.
 CONSTRAINT chk_motivo_ambito
 CHECK (
   ambito IN (
+    'ajuste_puntos',
     'anulacion_constancia',
     'anulacion_participacion',
     'cancelacion_actividad',
     'cancelacion_inscripcion',
+    'cierre_propuesta',
     'rechazo_mentoria',
     'rechazo_importacion',
     'revocar_consentimiento'

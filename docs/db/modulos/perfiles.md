@@ -441,12 +441,41 @@ perfil con `CASCADE`.
 
 ---
 
+## `acceso_dato_personal`
+
+Quién leyó o exportó datos personales de otra persona. Reemplaza, para lo único
+que importaba de ella, a la `bitacora` genérica del diseño original: el resto de
+los cambios ya lo registran las tablas de eventos ([`D-15`][d-15]). Es el
+equivalente de `AccesoDatoSensible` de hz-api.
+
+- **Régimen:** [`append-only`][auditoria], **alto volumen**
+- **Origen:**
+  > - [`RF-A-50`][rf-a-50]
+
+|       Campo       |      Tipo      | Nulo | Predeterminado |            Descripción            |
+| :---------------: | :------------: | :--: | :------------: | :-------------------------------: |
+|      `tipo`       | `varchar(20)`  |  no  |                |     `lectura` / `exportacion`     |
+|     `user_id`     |     `uuid`     |  no  |                |   Persona cuyos datos se vieron   |
+| `accedido_por_id` |     `uuid`     |  no  |                |  Cuenta que los vio, `RESTRICT`   |
+|     `recurso`     | `varchar(200)` |  no  |                | Ruta o exportación que los expuso |
+|     `detalle`     |     `text`     |  no  |      `''`      |                                   |
+
+|               Índice                |        Definición         |          Propósito           |
+| :---------------------------------: | :-----------------------: | :--------------------------: |
+|    `idx_accesodatopersonal_user`    |  `(user_id, created_at)`  | Quién vio mis datos y cuándo |
+| `brin_accesodatopersonal_createdat` | `(created_at) USING BRIN` |     Purga por retención      |
+
+La escribe el servicio que expone el dato, en la misma transacción que la
+lectura o la exportación nominal; una lectura que no pasa por él no es una
+lectura que la API ofrezca.
+
+---
+
 ## Pendiente en este módulo
 
-|             Tabla             |                                                 Para qué                                                  |
-| :---------------------------: | :-------------------------------------------------------------------------------------------------------: |
-|    `acceso_dato_personal`     | `append-only`: quién leyó o exportó datos personales de otra persona, en lugar de una `bitacora` genérica |
-| Fusión de personas duplicadas |                        Servicio que traslada filas; ver [`rudi_user`](#rudi_user)                         |
+|             Tabla             |                          Para qué                          |
+| :---------------------------: | :--------------------------------------------------------: |
+| Fusión de personas duplicadas | Servicio que traslada filas; ver [`rudi_user`](#rudi_user) |
 
 [auditoria]: ../convenciones.md#auditoria-por-tabla
 [catalogos-forma]: catalogos.md#forma-comun
@@ -458,6 +487,7 @@ perfil con `CASCADE`.
 [d-08]: ../decisiones.md#d-08
 [d-09]: ../decisiones.md#d-09
 [d-12]: ../decisiones.md#d-12
+[d-15]: ../decisiones.md#d-15
 [d-17]: ../decisiones.md#d-17
 [d-19]: ../decisiones.md#d-19
 [rf-a-05]: ../../requerimientos/funcionales/administracion.md#rf-a-05
